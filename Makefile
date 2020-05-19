@@ -6,7 +6,7 @@ PDFLABSHEETS	= $(LABSHEETS:%=%.pdf)
 
 all : $(PDFFILES)
 
-$(TEXFILES) : alifeconf.sty tipping.Rout
+$(TEXFILES) : alifeconf.sty al20sustainfigs.Rout
 
 clean :
 	rm -f *~ *.dvi *.aux *.out *.log *.bbl *.blg $(PSFILES) $(PDFFILES)

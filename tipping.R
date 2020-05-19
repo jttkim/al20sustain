@@ -430,10 +430,4 @@ alife2020Figs <- function(n, d=NULL)
   return(invisible(d));
 }
 
-if (!exists("d5"))
-{
-  d5 <- alife2020Figs(5);
-} else {
-  d5 <- alife2020Figs(5, d5);
-}
 
