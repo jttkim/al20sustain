@@ -24,6 +24,7 @@ tippingCubicStableFixedPoints <- function(a, b, c)
 {
   xExt  <- tippingCubicExtrema(a, b, c);
   yExt  <- tippingCubic(xExt, a, b, c);
+  ## print(sprintf("a = %f, b = %f, c = %f", a, b, c));
   xRoot <- sort(Re(polyroot(c(c, a, 0, -b))));
   xStable <- numeric();
   if (yExt[1] < 0)
@@ -119,6 +120,47 @@ coupledTippingDiffEq <- function(t, y, params)
 }
 
 
+upstreamImpact <- function(coupledTippingParams, coupledTippingState, i)
+{
+  if (i == 1L)
+  {
+    return(0);
+  }
+  j <- 1L:(i - 1L);
+  return(sum(coupledTippingParams$d[i, j] * coupledTippingState[j]));
+}
+
+
+coupledTippingStableFixedPoint <- function(coupledTippingParams, initialState)
+{
+  n <- coupledTippingDim(coupledTippingParams);
+  coupledTippingState <- numeric();
+  for (i in 1L:n)
+  {
+    u <- upstreamImpact(coupledTippingParams, coupledTippingState, i);
+    ## print(sprintf("i = %d, u = %f", i, u));
+    tcsfp <- tippingCubicStableFixedPoints(coupledTippingParams$a[i], coupledTippingParams$b[i], coupledTippingParams$c[i] + u);
+    if (length(tcsfp) == 1L)
+    {
+      coupledTippingState <- c(coupledTippingState, tcsfp);
+    }
+    else
+    {
+      y <- tippingCubic(initialState[i], coupledTippingParams$a[i], coupledTippingParams$b[i], coupledTippingParams$c[i]);
+      if ((initialState[1L] <= tcsfp[1L]) || (y < 0))
+      {
+        coupledTippingState <- c(coupledTippingState, tcsfp[1L]);
+      }
+      else
+      {
+        coupledTippingState <- c(coupledTippingState, tcsfp[2L]);
+      }
+    }
+  }
+  return(coupledTippingState);
+}
+
+
 coupledTippingStableFixedPoints <- function(coupledTippingParams)
 {
   if (any(coupledTippingParams$d[upper.tri(coupledTippingParams$d, diag=TRUE)] != 0))
@@ -144,17 +186,6 @@ coupledTippingStableFixedPoints <- function(coupledTippingParams)
     }
   }
   return(fixedPointPrefixList);
-}
-
-
-upstreamImpact <- function(coupledTippingParams, coupledTippingState, i)
-{
-  if (i == 1L)
-  {
-    return(0);
-  }
-  j <- 1L:(i - 1L);
-  return(sum(coupledTippingParams$d[i, j] * coupledTippingState[j]));
 }
 
 
