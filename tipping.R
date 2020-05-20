@@ -161,7 +161,7 @@ coupledTippingStableFixedPoint <- function(coupledTippingParams, initialState)
 }
 
 
-coupledTippingStableFixedPoints <- function(coupledTippingParams)
+coupledTippingAllStableFixedPoints <- function(coupledTippingParams)
 {
   if (any(coupledTippingParams$d[upper.tri(coupledTippingParams$d, diag=TRUE)] != 0))
   {
@@ -204,7 +204,7 @@ plotCoupledTippingCubics <- function(coupledTippingParams, coupledTippingState, 
 
 coupledTippingStateIntSet <- function(coupledTippingParams)
 {
-  return(as.integer(lapply(coupledTippingStableFixedPoints(coupledTippingParams), discretiseCoupledTippingStateInt)));
+  return(as.integer(lapply(coupledTippingAllStableFixedPoints(coupledTippingParams), discretiseCoupledTippingStateInt)));
 }
 
 
@@ -326,7 +326,7 @@ transientEmpowerment <- function(coupledTippingParams, agentImpact, initialState
 allTransientEmpowerment <- function(coupledTippingParams, agentImpact, nSteps, dTime)
 {
   ## FIXME: function assumes that initialState is a valid fixed point
-  fpList <- coupledTippingStableFixedPoints(coupledTippingParams);
+  fpList <- coupledTippingAllStableFixedPoints(coupledTippingParams);
   fpIntList <- integer();
   empList <- numeric();
   for (fp in fpList)
@@ -340,7 +340,7 @@ allTransientEmpowerment <- function(coupledTippingParams, agentImpact, nSteps, d
 
 coupledTippingDemo <- function(coupledTippingParams, e, nSteps, dTime, fnamePattern=NULL)
 {
-  fpList <- coupledTippingStableFixedPoints(coupledTippingParams);
+  fpList <- coupledTippingAllStableFixedPoints(coupledTippingParams);
   fp <- fpList[[1]];
   for (i in 1:coupledTippingDim(coupledTippingParams))
   {
@@ -385,7 +385,7 @@ agentImpactTESweep <- function(coupledTippingParams, agentImpactList, initialSta
 
 tippingAnalysis <- function(coupledTippingParams)
 {
-  fpList <- coupledTippingStableFixedPoints(coupledTippingParams);
+  fpList <- coupledTippingAllStableFixedPoints(coupledTippingParams);
   agentImpactTe <- agentImpactTESweep(coupledTippingParams, 0:20 / 20, fpList[[1]], 300, 0.1);
   return(invisible(list(coupledTippingParams=coupledTippingParams, fpList=fpList, agentImpactTe=agentImpactTe)));
 }
@@ -394,7 +394,7 @@ tippingAnalysis <- function(coupledTippingParams)
 toyAnalysis <- function()
 {
   toyCtp <- makeToyCoupledTippingParams();
-  toyFpList <- coupledTippingStableFixedPoints(toyCtp);
+  toyFpList <- coupledTippingAllStableFixedPoints(toyCtp);
   toyAgentImpact <- agentImpactTESweep(toyCtp, 0:20 / 20, toyFpList[[1]], 500, 0.1);
   barplot(toyAgentImpact$transientEmpowerment, names.arg=sprintf("%3.1f", toyAgentImpact$agentImpact));
   return(invisible(list(toyCtp=toyCtp, toyFpList=toyFpList, toyAgentImpact=toyAgentImpact)));
@@ -418,7 +418,7 @@ fixedPointScan <- function(nList, cList, dList)
         nCol <- c(nCol, n);
         cCol <- c(cCol, c);
         dCol <- c(dCol, d);
-        numStatesCol <- c(numStatesCol, length(coupledTippingStableFixedPoints(p)));
+        numStatesCol <- c(numStatesCol, length(coupledTippingAllStableFixedPoints(p)));
       }
     }
   }
