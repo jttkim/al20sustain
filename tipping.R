@@ -8,6 +8,12 @@ epsdevice <- function(epsname, width = 8, height = 6)
 }
 
 
+commaSep <- function(x, fmt)
+{
+  return(paste(sprintf(fmt, x), collapse=", "));
+}
+
+
 tippingCubic <- function(x, a, b, c)
 {
   return(a * x - b * x * x * x + c);
@@ -138,22 +144,35 @@ coupledTippingStableFixedPoint <- function(coupledTippingParams, initialState)
   for (i in 1L:n)
   {
     u <- upstreamImpact(coupledTippingParams, coupledTippingState, i);
-    ## print(sprintf("i = %d, u = %f", i, u));
+    ## message(sprintf("i = %d, u = %f, coupledTippingState = %s", i, u, paste(sprintf("%f", coupledTippingState), collapse=", ")));
     tcsfp <- tippingCubicStableFixedPoints(coupledTippingParams$a[i], coupledTippingParams$b[i], coupledTippingParams$c[i] + u);
     if (length(tcsfp) == 1L)
     {
+      ## message(sprintf("i=%d: single state: %f", i, tcsfp));
       coupledTippingState <- c(coupledTippingState, tcsfp);
     }
     else
     {
-      y <- tippingCubic(initialState[i], coupledTippingParams$a[i], coupledTippingParams$b[i], coupledTippingParams$c[i]);
-      if ((initialState[1L] <= tcsfp[1L]) || (y < 0))
+      y <- tippingCubic(initialState[i], coupledTippingParams$a[i], coupledTippingParams$b[i], coupledTippingParams$c[i] + u);
+      ## message(sprintf("i=%d: multiple states: %s, initialState[%d]=%f, u=%f, y=%f", i, paste(sprintf("%f", tcsfp), collapse=", "), i, initialState[i], u, y));
+      if (initialState[i] <= tcsfp[1L])
       {
         coupledTippingState <- c(coupledTippingState, tcsfp[1L]);
       }
-      else
+      else if (initialState[i] >= tcsfp[2L])
       {
         coupledTippingState <- c(coupledTippingState, tcsfp[2L]);
+      }
+      else
+      {
+        if (y <= 0)
+        {
+          coupledTippingState <- c(coupledTippingState, tcsfp[1L]);
+        }
+        else
+        {
+          coupledTippingState <- c(coupledTippingState, tcsfp[2L]);
+        }
       }
     }
   }
@@ -289,10 +308,17 @@ nextActuation <- function(actuation)
 }
 
 
-agentImpactedCoupledTippingTimeSeries <- function(coupledTippingParams, actuation, agentImpact, initialState, nStepsImpact, nStepsPostImpact, dTime)
+agentImpactedCoupledTippingParams <- function(coupledTippingParams, actuation, agentImpact)
 {
   agentImpactedCtp <- coupledTippingParams;
   agentImpactedCtp$c <- agentImpactedCtp$c + actuation * agentImpact;
+  return(agentImpactedCtp);
+}
+
+
+agentImpactedCoupledTippingTimeSeries <- function(coupledTippingParams, actuation, agentImpact, initialState, nStepsImpact, nStepsPostImpact, dTime)
+{
+  agentImpactedCtp <- agentImpactedCoupledTippingParams(coupledTippingParams, actuation, agentImpact);
   s <- coupledTippingTimeSeries(agentImpactedCtp, nStepsImpact, dTime, initialState);
   s <- rbind(s, coupledTippingTimeSeries(coupledTippingParams, nStepsPostImpact, dTime, s[nrow(s), 2:ncol(s)]));
   s[, "time"] <- 0:(nrow(s) - 1) * dTime;
@@ -309,8 +335,37 @@ transientEmpowerment <- function(coupledTippingParams, agentImpact, initialState
   while (!is.null(actuation))
   {
     s <- agentImpactedCoupledTippingTimeSeries(coupledTippingParams, actuation, agentImpact, initialState, nSteps, nSteps, dTime) ;
-    finalState <- discretiseCoupledTippingStateInt(s[nrow(s), 2:ncol(s)]);
+    finalState <- s[nrow(s), 2:ncol(s)];
+    print(finalState);
+    finalStateInt <- discretiseCoupledTippingStateInt(finalState);
+    finalStateSet <- union(finalStateSet, finalStateInt);
+    actuation <- nextActuation(actuation);
+    print(finalStateSet);
+    ## print(actuation);
+    ## print(coupledTippingParams$c);
+    ## print(agentCpParams$c);
+    plotODESeries(s, ylim=c(-2, 2));
+    readline(sprintf("finalState: %d, hit return", finalStateInt));
+  }
+  return(log2(length(finalStateSet)));
+}
+
+
+transientEmpowermentAnalytic <- function(coupledTippingParams, agentImpact, initialState)
+{
+  n <- coupledTippingDim(coupledTippingParams);
+  finalStateSet <- integer();
+  cpDim <- coupledTippingDim(coupledTippingParams);
+  actuation <- rep(0, cpDim);
+  while (!is.null(actuation))
+  {
+    agentImpactedCtp <- agentImpactedCoupledTippingParams(coupledTippingParams, actuation, agentImpact);
+    agentImpactedFinalState = coupledTippingStableFixedPoint(agentImpactedCtp, initialState);
+    relaxedFinalState = coupledTippingStableFixedPoint(coupledTippingParams, agentImpactedFinalState);
+    message(sprintf("agentImpactedFinalState: %s, relaxedFinalState: %s", commaSep(agentImpactedFinalState, "%f"), commaSep(relaxedFinalState, "%f")));
+    finalState <- discretiseCoupledTippingStateInt(relaxedFinalState);
     finalStateSet <- union(finalStateSet, finalState);
+    print(finalStateSet);
     actuation <- nextActuation(actuation);
     ## print(finalStateSet);
     ## print(actuation);
@@ -383,10 +438,24 @@ agentImpactTESweep <- function(coupledTippingParams, agentImpactList, initialSta
 }
 
 
+agentImpactTESweepAnalytic <- function(coupledTippingParams, agentImpactList, initialState)
+{
+  return(data.frame(agentImpact=agentImpactList, transientEmpowerment=sapply(agentImpactList, function(agentImpact) { return(transientEmpowermentAnalytic(coupledTippingParams, agentImpact, initialState)); })));
+}
+
+
 tippingAnalysis <- function(coupledTippingParams)
 {
   fpList <- coupledTippingAllStableFixedPoints(coupledTippingParams);
   agentImpactTe <- agentImpactTESweep(coupledTippingParams, 0:20 / 20, fpList[[1]], 300, 0.1);
+  return(invisible(list(coupledTippingParams=coupledTippingParams, fpList=fpList, agentImpactTe=agentImpactTe)));
+}
+
+
+tippingAnalysisAnalytic <- function(coupledTippingParams)
+{
+  fpList <- coupledTippingAllStableFixedPoints(coupledTippingParams);
+  agentImpactTe <- agentImpactTESweepAnalytic(coupledTippingParams, 0:20 / 20, fpList[[1]]);
   return(invisible(list(coupledTippingParams=coupledTippingParams, fpList=fpList, agentImpactTe=agentImpactTe)));
 }
 
@@ -456,6 +525,41 @@ alife2020Figs <- function(n, d=NULL)
   barplot(d$adMedium$agentImpactTe$transientEmpowerment, names.arg=sprintf("%3.1f", d$adMedium$agentImpactTe$agentImpact), las=2, sub=sprintf("d_ji in [%3.1f, %3.1f]", -d$dMedium, d$dMedium), xlab="E", ylab="empowerment", ylim=c(0, d$n));
   dev.off();
   epsdevice(sprintf("empprof%02dl.eps", d$n));
+  barplot(d$adLarge$agentImpactTe$transientEmpowerment, names.arg=sprintf("%3.1f", d$adLarge$agentImpactTe$agentImpact), las=2, sub=sprintf("d_ji in [%3.1f, %3.1f]", -d$dLarge, d$dLarge), xlab="E", ylab="empowerment", ylim=c(0, d$n));
+  dev.off();
+  return(invisible(d));
+}
+
+alife2020FigsAnalytic <- function(n, d=NULL)
+{
+  if (is.null(d))
+  {
+    d <- list();
+    d$n <- n;
+    d$dSmall <- 0.2
+    d$dMedium <- 0.4;
+    d$dLarge <- 0.8;
+    set.seed(6);
+    d$pdSmall <- makeRandomCoupledTippingParams(n, -0.1, 0.1, -d$dSmall, d$dSmall);
+    d$adSmall <- tippingAnalysisAnalytic(d$pdSmall);
+    set.seed(6);
+    d$pdMedium <- makeRandomCoupledTippingParams(n, -0.1, 0.1, -d$dMedium, d$dMedium);
+    d$adMedium <- tippingAnalysisAnalytic(d$pdMedium);
+    set.seed(6);
+    d$pdLarge <- makeRandomCoupledTippingParams(n, -0.1, 0.1, -d$dLarge, d$dLarge);
+    d$adLarge <- tippingAnalysisAnalytic(d$pdLarge);
+  }
+  else if (d$n != n)
+  {
+    stop("incompatible n");
+  }
+  epsdevice(sprintf("aempprof%02ds.eps", d$n));
+  barplot(d$adSmall$agentImpactTe$transientEmpowerment, names.arg=sprintf("%3.1f", d$adSmall$agentImpactTe$agentImpact), las=2, sub=sprintf("d_ji in [%3.1f, %3.1f]", -d$dSmall, d$dSmall), xlab="E", ylab="empowerment", ylim=c(0, d$n));
+  dev.off();
+  epsdevice(sprintf("aempprof%02dm.eps", d$n));
+  barplot(d$adMedium$agentImpactTe$transientEmpowerment, names.arg=sprintf("%3.1f", d$adMedium$agentImpactTe$agentImpact), las=2, sub=sprintf("d_ji in [%3.1f, %3.1f]", -d$dMedium, d$dMedium), xlab="E", ylab="empowerment", ylim=c(0, d$n));
+  dev.off();
+  epsdevice(sprintf("aempprof%02dl.eps", d$n));
   barplot(d$adLarge$agentImpactTe$transientEmpowerment, names.arg=sprintf("%3.1f", d$adLarge$agentImpactTe$agentImpact), las=2, sub=sprintf("d_ji in [%3.1f, %3.1f]", -d$dLarge, d$dLarge), xlab="E", ylab="empowerment", ylim=c(0, d$n));
   dev.off();
   return(invisible(d));
