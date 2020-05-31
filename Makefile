@@ -8,10 +8,13 @@ all : $(PDFFILES)
 
 $(TEXFILES) : alifeconf.sty al20sustainfigs.Rout
 
+check :
+	Rscript --vanilla -e 'library("testthat"); if (sum(as.data.frame(test_file("tipping_test.R"))$$failed) > 0L) { stop("tests failed"); }'
+
 clean :
 	rm -f *~ *.dvi *.aux *.out *.log *.bbl *.blg $(PSFILES) $(PDFFILES)
 
-.PHONY : testslide allslides allsheets all clean tgz
+.PHONY : testslide allslides allsheets all clean tgz check
 .PRECIOUS : %.dvi %.ps %.Rout
 .SECONDARY :
 
