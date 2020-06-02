@@ -402,18 +402,37 @@ transientEmpowermentAnalytic <- function(coupledTippingParams, agentImpact, init
 }
 
 
-allTransientEmpowerment <- function(coupledTippingParams, agentImpact, nSteps, dTime)
+allTransientEmpowerment <- function(coupledTippingParams, agentImpact)
 {
-  ## FIXME: function assumes that initialState is a valid fixed point
   fpList <- coupledTippingAllStableFixedPoints(coupledTippingParams);
   fpIntList <- integer();
   empList <- numeric();
   for (fp in fpList)
   {
     fpIntList <- c(fpIntList, discretiseCoupledTippingStateInt(fp));
-    empList <- c(empList, transientEmpowerment(coupledTippingParams, agentImpact, fp, nSteps, dTime));
+    empList <- c(empList, transientEmpowermentAnalytic(coupledTippingParams, agentImpact, fp));
   }
   return(data.frame(initialState=fpIntList, transientEmpowerment=empList, stringsAsFactors=FALSE));
+}
+
+
+allTransientEmpowermentSweep <- function(coupledTippingParams, agentImpactList)
+{
+  d <- NULL;
+  for (agentImpact in agentImpactList)
+  {
+    a <- allTransientEmpowerment(coupledTippingParams, agentImpact);
+    a[["agentImpact"]] <- rep(agentImpact, nrow(a));
+    if (is.null(d))
+    {
+      d <- a;
+    }
+    else
+    {
+      d <- rbind(d, a);
+    }
+  }
+  return(d);
 }
 
 
@@ -631,3 +650,20 @@ alife2020FigsAnalytic <- function(n, d=NULL)
 }
 
 
+allTransientEmpowermentDemo <- function(n, cRange, dRange, agentImpactList)
+{
+  set.seed(3L);
+  coupledTippingParams <- makeRandomCoupledTippingParams(n, -cRange, cRange, -dRange, dRange);
+  atp <- allTransientEmpowermentSweep(coupledTippingParams, agentImpactList);
+  return(invisible(list(coupledTippingParams=coupledTippingParams, atp=atp)));
+}
+
+
+statePerturbationAnalysis <- function(coupledTippingParams, initialState, standardDeviation, nSteps, dTime, ...)
+{
+  perturbedState <- initialState + rnorm(length(initialState), sd=standardDeviation);
+  ctpTs <- coupledTippingTimeSeries(coupledTippingParams, nSteps, dTime, perturbedState);
+  plotODESeries(ctpTs, ...);
+  sse <- sum(apply(ctpTs[, 2:ncol(ctpTs)], 2L, function(x) { xDiff <- diff(x); return(sum(xDiff * xDiff)); }));
+  return(invisible(list(initialState=initialState, ctpTs=ctpTs, sse=sse)));
+}
