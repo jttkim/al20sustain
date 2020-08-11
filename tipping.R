@@ -20,13 +20,42 @@ tippingCubic <- function(x, a, b, c)
 }
 
 
+tippingCubicDerivative1 <- function(x, a, b)
+{
+  return(as.numeric(a - 3 * b * x * x));
+}
+
+
 tippingCubicExtrema <- function(a, b, c)
 {
-  return(c(-sqrt(a / 3 * b), sqrt(a / 3 * b)));
+  e <- sqrt(a / 3 * b);
+  return(c(-e, e));
 }
 
 
 tippingCubicCcrit <- 2 / 3 / sqrt(3);
+
+
+cardanoCubicRoot <- function(p, q)
+{
+  ## compute roots of x^3 + p * x + q
+  ## based on https://en.wikipedia.org/wiki/Cubic_equation
+  ## further stuff at https://math.vanderbilt.edu/schectex/courses/cubic/, https://mathworld.wolfram.com/CubicFormula.html
+  ## d <- 4 * p * p * p + 27 * q * q;
+  u <- (-1 + sqrt(-3 + 0i)) / 2.0;
+  r2 <- q * q / 4.0 + p * p * p / 27.0 + 0i;
+  ## message(sprintf("r2 = %f+%fi", Re(r2), Im(r2)));
+  c1 <- (-(q + 0i) / 2 + sqrt(r2))^(1 / 3);
+  c2  <- c1 * u;
+  c3  <- c2 * u;
+  return(c(c1 - p / (3.0 * c1), c2 - p / (3.0 * c2), c3 - p / (3.0 * c3)));
+}
+
+
+tippingCubicRoot <- function(a, b, c)
+{
+  return(cardanoCubicRoot(-b, 0, a, c));
+}
 
 
 tippingCubicStableFixedPoints <- function(a, b, c)
@@ -34,15 +63,15 @@ tippingCubicStableFixedPoints <- function(a, b, c)
   xExt  <- tippingCubicExtrema(a, b, c);
   yExt  <- tippingCubic(xExt, a, b, c);
   ## print(sprintf("a = %f, b = %f, c = %f", a, b, c));
-  xRoot <- sort(Re(polyroot(c(c, a, 0, -b))));
+  r <- Re(polyroot(c(c, a, 0, -b)));
   xStable <- numeric();
   if (yExt[1] < 0)
   {
-    xStable <- c(xStable, xRoot[1]);
+    xStable <- min(r);
   }
   if (yExt[2] > 0)
   {
-    xStable <- c(xStable, xRoot[3]);
+    xStable <- c(xStable, max(r));
   }
   return(xStable);
 }
@@ -375,7 +404,7 @@ transientEmpowerment <- function(coupledTippingParams, agentImpact, initialState
 }
 
 
-transientEmpowermentAnalytic <- function(coupledTippingParams, agentImpact, initialState)
+agentReachableStateSetAnalytic <- function(coupledTippingParams, agentImpact, initialState)
 {
   n <- coupledTippingDim(coupledTippingParams);
   finalStateSet <- integer();
@@ -398,7 +427,13 @@ transientEmpowermentAnalytic <- function(coupledTippingParams, agentImpact, init
     ## plotODESeries(s, ylim=c(-2, 2));
     ## readline(sprintf("finalState: %d, hit return", finalState));
   }
-  return(log2(length(finalStateSet)));
+  return(finalStateSet);
+}
+
+
+transientEmpowermentAnalytic <- function(coupledTippingParams, agentImpact, initialState)
+{
+  return(log2(length(agentReachableStateSetAnalytic(coupledTippingParams, agentImpact, initialState))));
 }
 
 
@@ -659,11 +694,42 @@ allTransientEmpowermentDemo <- function(n, cRange, dRange, agentImpactList)
 }
 
 
-statePerturbationAnalysis <- function(coupledTippingParams, initialState, standardDeviation, nSteps, dTime, ...)
+statePerturbationAnalysis <- function(coupledTippingParams, initialState, standardDeviation, nSteps, dTime)
 {
   perturbedState <- initialState + rnorm(length(initialState), sd=standardDeviation);
   ctpTs <- coupledTippingTimeSeries(coupledTippingParams, nSteps, dTime, perturbedState);
-  plotODESeries(ctpTs, ...);
+  ## plotODESeries(ctpTs, ...);
   sse <- sum(apply(ctpTs[, 2:ncol(ctpTs)], 2L, function(x) { xDiff <- diff(x); return(sum(xDiff * xDiff)); }));
   return(invisible(list(initialState=initialState, ctpTs=ctpTs, sse=sse)));
+}
+
+
+statePerturbationAllSse <- function(coupledTippingParams, standardDeviation, numRepeats, nSteps, dTime)
+{
+  fixedPointList <- coupledTippingAllStableFixedPoints(coupledTippingParams);
+  l <- list();
+  for (initialState in fixedPointList)
+  {
+    sseList <- numeric();
+    for (r in 1:numRepeats)
+    {
+      sse <- statePerturbationAnalysis(coupledTippingParams, initialState, standardDeviation, nSteps, dTime)$sse;
+      sseList <- c(sseList, sse);
+    }
+    l[[length(l) + 1L]] <- sseList;
+  }
+  return(l);
+}
+
+
+coupledTippingStateDeriv1SquaredSum <- function(coupledTippingParams, state)
+{
+  ss <- 0.0;
+  n <- coupledTippingDim(coupledTippingParams);
+  for (i in 1L:n)
+  {
+    d1 <- tippingCubicDerivative1(state[i], coupledTippingParams$a[i], coupledTippingParams$b[i]);
+    ss <- ss + d1 * d1;
+  }
+  return(ss);
 }
