@@ -394,6 +394,38 @@ characterising and quantifying sustainability, e.g.\ as a tool to
 identify risks of breakdowns in sustainability or to identify elements
 that are especially relevant to maintaining sustainability.
 
+
+\subsection{Additional Discussion Items}
+
+The stability of systems of coupled differential equations has been an
+area of interest since decades
+\citep{May1972_stablelargecomplexsystem,Landi2018_ecologicalnetworks}.
+
+\citet{May1972_stablelargecomplexsystem} considers a very general
+class of dynamic systems, characterised locally by a Jacobian. In this
+context, stability is defined by fixed points, whereas other
+attractors (cyclic or strange) are considered to represent
+instability.
+
+We deliberately restrict coupling to a directed acyclic graph. As a
+result, all attractors are fixed points, so in the sense of
+\citet{May1972_stablelargecomplexsystem} these systems are always
+``stable''.
+
+If elements governed by cubic differential equations are allowed to
+mutually impact each other (i.e.\ element $i$ impacts on element $j$
+and vice versa), it is rather easy to construct systems in which the
+elements do not have any fixed points, but are jointly participating
+in a cyclic attractor. As a result, these elements can no longer be
+characterised as being in one of two discretisable states
+(characterised by fixed points labelled ``sustainable'' and
+``tipped'', respectively. From this perspective, coupling of cubic
+differential equations with a DAG, as used in this paper, can be
+considered to be the most general way of coupling that preserves the
+``tipping element'' characteristic of the individual elements.
+
+
+
 % From perspective for the work presented here include 
 
 %  as minimalistic ALife systems
