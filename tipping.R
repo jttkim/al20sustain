@@ -58,12 +58,16 @@ tippingCubicRoot <- function(a, b, c)
 }
 
 
-tippingCubicStableFixedPoints <- function(a, b, c)
+cubicExtremaXY <- function(a, b, c)
 {
-  xExt  <- tippingCubicExtrema(a, b, c);
-  yExt  <- tippingCubic(xExt, a, b, c);
-  ## print(sprintf("a = %f, b = %f, c = %f", a, b, c));
-  r <- Re(polyroot(c(c, a, 0, -b)));
+  xExt <- tippingCubicExtrema(a, b, c);
+  yExt <- tippingCubic(xExt, a, b, c);
+  return(list(xExt=xExt, yExt=yExt));
+}
+
+
+findStable <- function(xExt, yExt, r)
+{
   xStable <- numeric();
   if (yExt[1] < 0)
   {
@@ -73,6 +77,25 @@ tippingCubicStableFixedPoints <- function(a, b, c)
   {
     xStable <- c(xStable, max(r));
   }
+  return(xStable);
+}
+
+
+wrapPolyroot <- function(x)
+{
+  return(polyroot(x));
+}
+
+
+tippingCubicStableFixedPoints <- function(a, b, c)
+{
+  xyExt <- cubicExtremaXY(a, b, c);
+  xExt  <- xyExt$xExt;
+  yExt  <- xyExt$yExt;
+  ## print(sprintf("a = %f, b = %f, c = %f", a, b, c));
+  ## r <- Re(polyroot(c(c, a, 0, -b)));
+  r <- Re(wrapPolyroot(c(c, a, 0, -b)));
+  xStable  <- findStable(xExt, yExt, r);
   return(xStable);
 }
 
