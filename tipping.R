@@ -125,12 +125,60 @@ makeToyCoupledTippingParams <- function()
 }
 
 
+makeToyHoppingCoupledTippingParams <- function()
+{
+  n <- 3L;
+  d <- matrix(0, nrow=n, ncol=n);
+  d[2, 1] <- 1.0;
+  d[3, 2] <- 1.5;
+  params <- list(a=rep(1.0, n), b=rep(1.0, n), c=c(0, -2, 2.5), d=d);
+  names(params$a) <- names(params$b) <- names(params$c) <- rownames(params$d)  <- colnames(params$d) <- sprintf("x%02d", 1:n);
+  return(params);
+}
+
+
+hoppingDemo <- function(ctp, agentImpact, nSteps, dtime)
+{
+  ## ctp <- makeToyHoppingCoupledTippingParams();
+  n <- coupledTippingDim(ctp);
+  fpList <- coupledTippingAllStableFixedPoints(ctp);
+  actuation <- rep(0, n);
+  actuation[1] <- 1;
+  s <- agentImpactedCoupledTippingTimeSeries(ctp, actuation, agentImpact, fpList[[1]], nSteps, nSteps, dtime);
+  plotODESeries(s, ylim=c(-2, 2));
+  return(invisible(s));
+}
+
+
+makeHoppingCoupledTippingParams <- function(n)
+{
+  d <- matrix(0, nrow=n, ncol=n);
+  stop("unfinished");
+}
+
+
 makeRandomCoupledTippingParams <- function(n, cMin, cMax, dMin, dMax)
 {
   cRange <- cMax - cMin;
   dRange <- dMax - dMin;
   d <- matrix(0, nrow=n, ncol=n);
   d[lower.tri(d)] <- runif(n * (n - 1) / 2) * dRange + dMin;
+  params <- list(a=rep(1.0, n), b=rep(1.0, n), c=runif(n) * cRange + cMin, d=d);
+  names(params$a) <- names(params$b) <- names(params$c) <- rownames(params$d)  <- colnames(params$d) <- sprintf("x%02d", 1:n);
+  return(params);
+}
+
+
+makeRandomChainCoupledTippingParams <- function(n, cMin, cMax, dMin, dMax)
+{
+  cRange <- cMax - cMin;
+  dRange <- dMax - dMin;
+  d <- matrix(0, nrow=n, ncol=n);
+  r <- runif(n - 1) * dRange + dMin;
+  for (i in 1L:(n - 1))
+  {
+    d[i + 1, i] <- r[i];
+  }
   params <- list(a=rep(1.0, n), b=rep(1.0, n), c=runif(n) * cRange + cMin, d=d);
   names(params$a) <- names(params$b) <- names(params$c) <- rownames(params$d)  <- colnames(params$d) <- sprintf("x%02d", 1:n);
   return(params);
@@ -276,12 +324,6 @@ plotCoupledTippingCubics <- function(coupledTippingParams, coupledTippingState, 
 }
 
 
-coupledTippingStateIntSet <- function(coupledTippingParams)
-{
-  return(as.integer(lapply(coupledTippingAllStableFixedPoints(coupledTippingParams), discretiseCoupledTippingStateInt)));
-}
-
-
 coupledTippingTimeSeries <- function(coupledTippingParams, nSteps, dTime, y0=NULL)
 {
   tpDim <- coupledTippingDim(coupledTippingParams);
@@ -306,6 +348,13 @@ discretiseCoupledTippingState <- function(y)
 }
 
 
+discretiseCoupledTippingStateStr <- function(y)
+{
+  s <- discretiseCoupledTippingState(y);
+  return(paste(as.character(s), collapse=""));
+}
+
+
 discretiseCoupledTippingStateInt <- function(y)
 {
   s <- discretiseCoupledTippingState(y);
@@ -320,6 +369,12 @@ discretiseCoupledTippingStateInt <- function(y)
     }
   }
   return(i);
+}
+
+
+coupledTippingStateIntSet <- function(coupledTippingParams)
+{
+  return(as.integer(lapply(coupledTippingAllStableFixedPoints(coupledTippingParams), discretiseCoupledTippingStateInt)));
 }
 
 
@@ -451,6 +506,21 @@ agentReachableStateSetAnalytic <- function(coupledTippingParams, agentImpact, in
     ## readline(sprintf("finalState: %d, hit return", finalState));
   }
   return(finalStateSet);
+}
+
+
+stateTransitionMatrix <- function(coupledTippingParams, agentImpact)
+{
+  fpList <- coupledTippingAllStableFixedPoints(coupledTippingParams);
+  numStates <- length(fpList);
+  fpListInt <- sapply(fpList, discretiseCoupledTippingStateInt);
+  m <- matrix(FALSE, nrow=numStates, ncol=numStates);
+  rownames(m) <- colnames(m) <- sapply(fpList, discretiseCoupledTippingStateStr);
+  for (i in seq(along=fpList))
+  {
+    m[i, ] <- fpListInt %in% agentReachableStateSetAnalytic(coupledTippingParams, agentImpact, fpList[[i]]);
+  }
+  return(m);
 }
 
 
@@ -593,6 +663,62 @@ fixedPointScan <- function(nList, cList, dList)
     }
   }
   return(data.frame(n=nCol, c=cCol, d=dCol, numStates=numStatesCol));
+}
+
+
+empowermentBarplot <- function(e, numNodes, numStates=NULL, ...)
+{
+  barplot(e, ylim=c(0, numNodes), ...);
+  if (!is.null(numStates))
+  {
+    eMax <- log2(numStates);
+    lines(c(-1, length(e) * 1.2 + 1L), c(eMax, eMax), col="blue");
+  }
+}
+
+
+plotIeeeAlife2020Analysis <- function(d)
+{
+  opar <- par(no.readonly=TRUE);
+  par(mfrow=c(3, 2));
+  empowermentBarplot(d8$adSmall$agentImpactTe$transientEmpowerment, 8, length(d8$adSmall$fpList), main="standard");
+  empowermentBarplot(d8$adChainSmall$agentImpactTe$transientEmpowerment, 8, length(d8$adChainSmall$fpList), main="chain");
+  empowermentBarplot(d8$adMedium$agentImpactTe$transientEmpowerment, 8, length(d8$adMedium$fpList), main="standard");
+  empowermentBarplot(d8$adChainMedium$agentImpactTe$transientEmpowerment, 8, length(d8$adChainMedium$fpList), main="chain");
+  empowermentBarplot(d8$adLarge$agentImpactTe$transientEmpowerment, 8, length(d8$adLarge$fpList), main="standard");
+  empowermentBarplot(d8$adChainLarge$agentImpactTe$transientEmpowerment, 8, length(d8$adChainLarge$fpList), main="chain");
+  par(opar);
+}
+
+
+ieeealife2020Analysis <- function(n)
+{
+  d <- list();
+  d$n <- n;
+  ## d$nSteps <- 300L;
+  ## d$dTime <- 0.1;
+  d$dSmall <- 0.2
+  d$dMedium <- 0.4;
+  d$dLarge <- 0.8;
+  set.seed(6);
+  d$ctpSmall <- makeRandomCoupledTippingParams(n, -0.1, 0.1, -d$dSmall, d$dSmall);
+  d$adSmall <- tippingAnalysisAnalytic(d$ctpSmall);
+  set.seed(6);
+  d$ctpMedium <- makeRandomCoupledTippingParams(n, -0.1, 0.1, -d$dMedium, d$dMedium);
+  d$adMedium <- tippingAnalysisAnalytic(d$ctpMedium);
+  set.seed(6);
+  d$ctpLarge <- makeRandomCoupledTippingParams(n, -0.1, 0.1, -d$dLarge, d$dLarge);
+  d$adLarge <- tippingAnalysisAnalytic(d$ctpLarge);
+  set.seed(6);
+  d$ctpChainSmall <- makeRandomChainCoupledTippingParams(n, -0.1, 0.1, -d$dSmall, d$dSmall);
+  d$adChainSmall <- tippingAnalysisAnalytic(d$ctpChainSmall);
+  set.seed(6);
+  d$ctpChainMedium <- makeRandomChainCoupledTippingParams(n, -0.1, 0.1, -d$dMedium, d$dMedium);
+  d$adChainMedium <- tippingAnalysisAnalytic(d$ctpChainMedium);
+  set.seed(6);
+  d$ctpChainLarge <- makeRandomChainCoupledTippingParams(n, -0.1, 0.1, -d$dLarge, d$dLarge);
+  d$adChainLarge <- tippingAnalysisAnalytic(d$ctpChainLarge);
+  return(invisible(d));
 }
 
 
