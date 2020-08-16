@@ -14,6 +14,12 @@ commaSep <- function(x, fmt)
 }
 
 
+binaryAtoi <- function(s)
+{
+  return(sapply(strsplit(s, ""), function(d) { return(sum(as.integer(d) * 2L^((length(d) - 1L):0L))); }));
+}
+
+
 tippingCubic <- function(x, a, b, c)
 {
   return(a * x - b * x * x * x + c);
@@ -524,6 +530,46 @@ stateTransitionMatrix <- function(coupledTippingParams, agentImpact)
 }
 
 
+stateTransitionMatrixEmpowerment <- function(sm)
+{
+  return(data.frame(initialState=binaryAtoi(rownames(sm)), transientEmpowerment=log2(rowSums(sm)), sustainableEmpowerment=log2(sapply(1L:nrow(sm), function(i) { return(sum(sm[i, ] & sm[, i])); })), stringsAsFactors=FALSE));
+}
+
+
+stateTransitionMatrixSweep <- function(coupledTippingParams, agentImpactList)
+{
+  l <- list();
+  for (agentImpact in agentImpactList)
+  {
+    l[[length(l) + 1]] <- stateTransitionMatrix(coupledTippingParams, agentImpact);
+  }
+  attr(l, "coupledTippingParams") <- coupledTippingParams;
+  attr(l, "agentImpactList") <- agentImpactList;
+  return(l);
+}
+
+
+stateTransitionMatrixEmpowermentSweep <- function(smList)
+{
+  agentImpactList <- attr(smList, "agentImpactList");
+  d <- NULL;
+  for (i in seq(along=agentImpactList))
+  {
+    a <- stateTransitionMatrixEmpowerment(smList[[i]]);
+    a[["agentImpact"]] <- rep(agentImpactList[i], nrow(a));
+    if (is.null(d))
+    {
+      d <- a;
+    }
+    else
+    {
+      d <- rbind(d, a);
+    }
+  }
+  return(d);
+}
+
+
 transientEmpowermentAnalytic <- function(coupledTippingParams, agentImpact, initialState)
 {
   return(log2(length(agentReachableStateSetAnalytic(coupledTippingParams, agentImpact, initialState))));
@@ -626,8 +672,11 @@ tippingAnalysis <- function(coupledTippingParams, nSteps, dTime)
 tippingAnalysisAnalytic <- function(coupledTippingParams)
 {
   fpList <- coupledTippingAllStableFixedPoints(coupledTippingParams);
-  agentImpactTe <- agentImpactTESweepAnalytic(coupledTippingParams, 0:20 / 20, fpList[[1]]);
-  return(invisible(list(coupledTippingParams=coupledTippingParams, fpList=fpList, agentImpactTe=agentImpactTe)));
+  ## agentImpactTe <- agentImpactTESweepAnalytic(coupledTippingParams, 0:20 / 20, fpList[[1]]);
+  ## agentImpactTe <- allTransientEmpowermentSweep(coupledTippingParams, 0:20 / 20);
+  stateTransitionMatrixList <- stateTransitionMatrixSweep(coupledTippingParams, 0:20 / 20);
+  agentImpactTe <- stateTransitionMatrixEmpowermentSweep(stateTransitionMatrixList);
+  return(invisible(list(coupledTippingParams=coupledTippingParams, fpList=fpList, stateTransitionMatrixList=stateTransitionMatrixList, agentImpactTe=agentImpactTe)));
 }
 
 
@@ -698,23 +747,23 @@ ieeealife2020Analysis <- function(n)
   ## d$nSteps <- 300L;
   ## d$dTime <- 0.1;
   d$dSmall <- 0.2
-  d$dMedium <- 0.4;
+  ## d$dMedium <- 0.4;
   d$dLarge <- 0.8;
   set.seed(6);
   d$ctpSmall <- makeRandomCoupledTippingParams(n, -0.1, 0.1, -d$dSmall, d$dSmall);
   d$adSmall <- tippingAnalysisAnalytic(d$ctpSmall);
-  set.seed(6);
-  d$ctpMedium <- makeRandomCoupledTippingParams(n, -0.1, 0.1, -d$dMedium, d$dMedium);
-  d$adMedium <- tippingAnalysisAnalytic(d$ctpMedium);
+  ## set.seed(6);
+  ## d$ctpMedium <- makeRandomCoupledTippingParams(n, -0.1, 0.1, -d$dMedium, d$dMedium);
+  ## d$adMedium <- tippingAnalysisAnalytic(d$ctpMedium);
   set.seed(6);
   d$ctpLarge <- makeRandomCoupledTippingParams(n, -0.1, 0.1, -d$dLarge, d$dLarge);
   d$adLarge <- tippingAnalysisAnalytic(d$ctpLarge);
   set.seed(6);
   d$ctpChainSmall <- makeRandomChainCoupledTippingParams(n, -0.1, 0.1, -d$dSmall, d$dSmall);
   d$adChainSmall <- tippingAnalysisAnalytic(d$ctpChainSmall);
-  set.seed(6);
-  d$ctpChainMedium <- makeRandomChainCoupledTippingParams(n, -0.1, 0.1, -d$dMedium, d$dMedium);
-  d$adChainMedium <- tippingAnalysisAnalytic(d$ctpChainMedium);
+  ## set.seed(6);
+  ## d$ctpChainMedium <- makeRandomChainCoupledTippingParams(n, -0.1, 0.1, -d$dMedium, d$dMedium);
+  ## d$adChainMedium <- tippingAnalysisAnalytic(d$ctpChainMedium);
   set.seed(6);
   d$ctpChainLarge <- makeRandomChainCoupledTippingParams(n, -0.1, 0.1, -d$dLarge, d$dLarge);
   d$adChainLarge <- tippingAnalysisAnalytic(d$ctpChainLarge);
