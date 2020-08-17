@@ -931,3 +931,17 @@ coupledTippingStateDeriv1SquaredSum <- function(coupledTippingParams, state)
   }
   return(ss);
 }
+
+
+coupledTippingStateDeriv1SquaredSumFromFixedPointIntList <- function(coupledTippingParams, fixedPointIntList)
+{
+  ssList <- rep(NA, length(fixedPointIntList));
+  fpList <- coupledTippingAllStableFixedPoints(coupledTippingParams);
+  for (fp in fpList)
+  {
+    ss <- coupledTippingStateDeriv1SquaredSum(coupledTippingParams, fp);
+    fixedPointInt <- discretiseCoupledTippingStateInt(fp);
+    ssList[fixedPointIntList == fixedPointInt] <- ss;
+  }
+  return(ssList);
+}
