@@ -106,23 +106,6 @@ tippingCubicStableFixedPoints <- function(a, b, c)
 }
 
 
-plotTippingCubic <- function(a, b, c, ...)
-{
-  
-  x <- -1000:1000 / 500;
-  # FIXME: code repetition to tippingPointDiffEq
-  y <- tippingCubic(x, a, b, c);
-  xExt  <- tippingCubicExtrema(a, b, c);
-  yExt  <- tippingCubic(xExt, a, b, c);
-  xStable <- tippingCubicStableFixedPoints(a, b, c);
-  yStable <- tippingCubic(xStable, a, b, c);
-  plot(x, y, type="l", ...);
-  lines(c(-3, 3), c(0, 0), col="blue");
-  points(xExt, yExt, col="red");
-  points(xStable, yStable, col="green");
-}
-
-
 makeToyCoupledTippingParams <- function()
 {
   toyTippingParams <- list(a=c(1, 1, 1), b=c(1, 1, 1), c=c(0, 0.1, -0.1), d=matrix(c(0, 0.1, 0.2, 0, 0, -0.1, 0, 0, 0), nrow=3, ncol=3));
@@ -140,19 +123,6 @@ makeToyHoppingCoupledTippingParams <- function()
   params <- list(a=rep(1.0, n), b=rep(1.0, n), c=c(0, -2, 2.5), d=d);
   names(params$a) <- names(params$b) <- names(params$c) <- rownames(params$d)  <- colnames(params$d) <- sprintf("x%02d", 1:n);
   return(params);
-}
-
-
-hoppingDemo <- function(ctp, agentImpact, nSteps, dtime)
-{
-  ## ctp <- makeToyHoppingCoupledTippingParams();
-  n <- coupledTippingDim(ctp);
-  fpList <- coupledTippingAllStableFixedPoints(ctp);
-  actuation <- rep(0, n);
-  actuation[1] <- 1;
-  s <- agentImpactedCoupledTippingTimeSeries(ctp, actuation, agentImpact, fpList[[1]], nSteps, nSteps, dtime);
-  plotODESeries(s, ylim=c(-2, 2));
-  return(invisible(s));
 }
 
 
@@ -232,6 +202,40 @@ coupledTippingDiffEq <- function(t, y, params)
   ## the condition j != i in the sum is not enforced, users must ensure that d[i][i] = 0
   dy  <-  tippingCubic(y, params$a, params$b, params$c) + coupledTippingImpact(y, params$d);
   return(list(dy));
+}
+
+
+coupledTippingJacobian <- function(coupledTippingParams, state)
+{
+  n <- coupledTippingDim(coupledTippingParams);
+  cpj <- matrix(0, nrow=n, ncol=n);
+  rownames(cpj) <- colnames(cpj) <- coupledTippingDimnames(coupledTippingParams);
+  for (i in 1L:n)
+  {
+    for (j in 1L:n)
+    {
+      if (i == j)
+      {
+        cpj[i, j] <- tippingCubicDerivative1(state[i], coupledTippingParams$a[i], coupledTippingParams$b[i]);
+      }
+      else
+      {
+        cpj[i, j] <- coupledTippingParams$d[i, j];
+      }
+    }
+  }
+  return(cpj);
+}
+
+
+coupledTippingJacobianList <- function(coupledTippingParams)
+{
+  l <- list();
+  for (fp in coupledTippingAllStableFixedPoints(coupledTippingParams))
+  {
+    l[[length(l) + 1L]] <- coupledTippingJacobian(copuledTippingParams, fp);
+  }
+  return(l);
 }
 
 
@@ -317,19 +321,6 @@ coupledTippingAllStableFixedPoints <- function(coupledTippingParams)
 }
 
 
-plotCoupledTippingCubics <- function(coupledTippingParams, coupledTippingState, ...)
-{
-  cpDim <- coupledTippingDim(coupledTippingParams);
-  cpDimnames <- coupledTippingDimnames(coupledTippingParams);
-  for (i in 1L:cpDim)
-  {
-    u <- upstreamImpact(coupledTippingParams, coupledTippingState, i);
-    plotTippingCubic(coupledTippingParams$a[i], coupledTippingParams$b[i], coupledTippingParams$c[i] + u, main=cpDimnames[i], ...);
-    readline(sprintf("%s -- hit return", cpDimnames[i]));
-  }
-}
-
-
 coupledTippingTimeSeries <- function(coupledTippingParams, nSteps, dTime, y0=NULL)
 {
   tpDim <- coupledTippingDim(coupledTippingParams);
@@ -402,21 +393,6 @@ coupledTippingDot <- function(coupledTippingParams, dotFname)
   }
   l <- c(l, "}");
   return(l);
-}
-
-
-plotODESeries <- function(odeResult, ...)
-{
-  odeComponentList <- colnames(odeResult);
-  odeComponentList <- odeComponentList[!(odeComponentList %in% "time")];
-  opar <- par(no.readonly=TRUE);
-  par(mfrow=c(length(odeComponentList), 1));
-  for (odeComponent in odeComponentList)
-  {
-    plot(odeResult[, "time"], odeResult[, odeComponent], type = "l", main=odeComponent, xlab="time", ylab=odeComponent, ...);
-    ## readline(sprintf("%s -- hit return", odeComponent));
-  }
-  par(opar);
 }
 
 
@@ -532,7 +508,8 @@ stateTransitionMatrix <- function(coupledTippingParams, agentImpact)
 
 stateTransitionMatrixEmpowerment <- function(sm)
 {
-  return(data.frame(initialState=binaryAtoi(rownames(sm)), transientEmpowerment=log2(rowSums(sm)), sustainableEmpowerment=log2(sapply(1L:nrow(sm), function(i) { return(sum(sm[i, ] & sm[, i])); })), stringsAsFactors=FALSE));
+  d <- data.frame(initialState=binaryAtoi(rownames(sm)), transientEmpowerment=log2(rowSums(sm)), sustainableEmpowerment=log2(sapply(1L:nrow(sm), function(i) { return(sum(sm[i, ] & sm[, i])); })), stringsAsFactors=FALSE);
+  return(d);
 }
 
 
@@ -566,6 +543,8 @@ stateTransitionMatrixEmpowermentSweep <- function(smList)
       d <- rbind(d, a);
     }
   }
+  ## remove weirdly uniqueified rownames, resulting from concatenating multiple dataframes with identical rownames
+  rownames(d) <- NULL;
   return(d);
 }
 
@@ -669,22 +648,29 @@ tippingAnalysis <- function(coupledTippingParams, nSteps, dTime)
 }
 
 
-tippingAnalysisAnalytic <- function(coupledTippingParams)
+tippingAnalysisAnalytic <- function(coupledTippingParams, agentImpactList)
 {
   fpList <- coupledTippingAllStableFixedPoints(coupledTippingParams);
-  ## agentImpactTe <- agentImpactTESweepAnalytic(coupledTippingParams, 0:20 / 20, fpList[[1]]);
-  ## agentImpactTe <- allTransientEmpowermentSweep(coupledTippingParams, 0:20 / 20);
-  stateTransitionMatrixList <- stateTransitionMatrixSweep(coupledTippingParams, 0:20 / 20);
+  ## agentImpactTe <- agentImpactTESweepAnalytic(coupledTippingParams, agentImpactList, fpList[[1]]);
+  ## agentImpactTe <- allTransientEmpowermentSweep(coupledTippingParams, agentImpactList);
+  stateTransitionMatrixList <- stateTransitionMatrixSweep(coupledTippingParams, agentImpactList);
   agentImpactTe <- stateTransitionMatrixEmpowermentSweep(stateTransitionMatrixList);
+  allDss <- coupledTippingStateAllDeriv1SquaredSum(coupledTippingParams);
+  allDssIntState <- binaryAtoi(names(allDss));
+  agentImpactTe$derivSquaredSum <- rep(as.numeric(NA), nrow(agentImpactTe));
+  for (i in seq(along=allDss))
+  {
+    agentImpactTe$derivSquaredSum[agentImpactTe$initialState == allDssIntState[i]] <- allDss[i];
+  }
   return(invisible(list(coupledTippingParams=coupledTippingParams, fpList=fpList, stateTransitionMatrixList=stateTransitionMatrixList, agentImpactTe=agentImpactTe)));
 }
 
 
-toyAnalysis <- function()
+toyAnalysis <- function(agentImpactList)
 {
   toyCtp <- makeToyCoupledTippingParams();
   toyFpList <- coupledTippingAllStableFixedPoints(toyCtp);
-  toyAgentImpact <- agentImpactTESweep(toyCtp, 0:20 / 20, toyFpList[[1]], 500, 0.1);
+  toyAgentImpact <- agentImpactTESweep(toyCtp, agentImpactList, toyFpList[[1]], 500, 0.1);
   barplot(toyAgentImpact$transientEmpowerment, names.arg=sprintf("%3.1f", toyAgentImpact$agentImpact));
   return(invisible(list(toyCtp=toyCtp, toyFpList=toyFpList, toyAgentImpact=toyAgentImpact)));
   ## tippingAnalysis(toyCtp);
@@ -715,17 +701,6 @@ fixedPointScan <- function(nList, cList, dList)
 }
 
 
-empowermentBarplot <- function(e, numNodes, numStates=NULL, ...)
-{
-  barplot(e, ylim=c(0, numNodes), ...);
-  if (!is.null(numStates))
-  {
-    eMax <- log2(numStates);
-    lines(c(-1, length(e) * 1.2 + 1L), c(eMax, eMax), col="blue");
-  }
-}
-
-
 plotIeeeAlife2020Analysis <- function(d)
 {
   opar <- par(no.readonly=TRUE);
@@ -740,33 +715,33 @@ plotIeeeAlife2020Analysis <- function(d)
 }
 
 
-ieeealife2020Analysis <- function(n)
+ieeealife2020Analysis <- function(n, agentImpactList)
 {
   d <- list();
   d$n <- n;
   ## d$nSteps <- 300L;
   ## d$dTime <- 0.1;
-  d$dSmall <- 0.2
+  d$dSmall <- 0.2;
   ## d$dMedium <- 0.4;
   d$dLarge <- 0.8;
   set.seed(6);
   d$ctpSmall <- makeRandomCoupledTippingParams(n, -0.1, 0.1, -d$dSmall, d$dSmall);
-  d$adSmall <- tippingAnalysisAnalytic(d$ctpSmall);
+  d$adSmall <- tippingAnalysisAnalytic(d$ctpSmall, agentImpactList);
   ## set.seed(6);
   ## d$ctpMedium <- makeRandomCoupledTippingParams(n, -0.1, 0.1, -d$dMedium, d$dMedium);
-  ## d$adMedium <- tippingAnalysisAnalytic(d$ctpMedium);
+  ## d$adMedium <- tippingAnalysisAnalytic(d$ctpMedium, agentImpactList);
   set.seed(6);
   d$ctpLarge <- makeRandomCoupledTippingParams(n, -0.1, 0.1, -d$dLarge, d$dLarge);
-  d$adLarge <- tippingAnalysisAnalytic(d$ctpLarge);
+  d$adLarge <- tippingAnalysisAnalytic(d$ctpLarge, agentImpactList);
   set.seed(6);
   d$ctpChainSmall <- makeRandomChainCoupledTippingParams(n, -0.1, 0.1, -d$dSmall, d$dSmall);
-  d$adChainSmall <- tippingAnalysisAnalytic(d$ctpChainSmall);
+  d$adChainSmall <- tippingAnalysisAnalytic(d$ctpChainSmall, agentImpactList);
   ## set.seed(6);
   ## d$ctpChainMedium <- makeRandomChainCoupledTippingParams(n, -0.1, 0.1, -d$dMedium, d$dMedium);
-  ## d$adChainMedium <- tippingAnalysisAnalytic(d$ctpChainMedium);
+  ## d$adChainMedium <- tippingAnalysisAnalytic(d$ctpChainMedium, agentImpactList);
   set.seed(6);
   d$ctpChainLarge <- makeRandomChainCoupledTippingParams(n, -0.1, 0.1, -d$dLarge, d$dLarge);
-  d$adChainLarge <- tippingAnalysisAnalytic(d$ctpChainLarge);
+  d$adChainLarge <- tippingAnalysisAnalytic(d$ctpChainLarge, agentImpactList);
   return(invisible(d));
 }
 
@@ -933,6 +908,21 @@ coupledTippingStateDeriv1SquaredSum <- function(coupledTippingParams, state)
 }
 
 
+coupledTippingStateAllDeriv1SquaredSum <- function(coupledTippingParams)
+{
+  fpList <- coupledTippingAllStableFixedPoints(coupledTippingParams);
+  ssList <- numeric();
+  for (fp in fpList)
+  {
+    ss <- coupledTippingStateDeriv1SquaredSum(coupledTippingParams, fp);
+    fixedPointInt <- discretiseCoupledTippingStateInt(fp);
+    ssList <- c(ssList, ss);
+  }
+  names(ssList) <- sapply(fpList, discretiseCoupledTippingStateStr);
+  return(ssList);
+}
+
+
 coupledTippingStateDeriv1SquaredSumFromFixedPointIntList <- function(coupledTippingParams, fixedPointIntList)
 {
   ssList <- rep(NA, length(fixedPointIntList));
@@ -944,4 +934,87 @@ coupledTippingStateDeriv1SquaredSumFromFixedPointIntList <- function(coupledTipp
     ssList[fixedPointIntList == fixedPointInt] <- ss;
   }
   return(ssList);
+}
+
+
+plotODESeries <- function(odeResult, ...)
+{
+  odeComponentList <- colnames(odeResult);
+  odeComponentList <- odeComponentList[!(odeComponentList %in% "time")];
+  opar <- par(no.readonly=TRUE);
+  par(mfrow=c(length(odeComponentList), 1));
+  for (odeComponent in odeComponentList)
+  {
+    plot(odeResult[, "time"], odeResult[, odeComponent], type = "l", main=odeComponent, xlab="time", ylab=odeComponent, ...);
+    ## readline(sprintf("%s -- hit return", odeComponent));
+  }
+  par(opar);
+}
+
+
+plotTippingCubic <- function(a, b, c, ...)
+{
+  
+  x <- -1000:1000 / 500;
+  # FIXME: code repetition to tippingPointDiffEq
+  y <- tippingCubic(x, a, b, c);
+  xExt  <- tippingCubicExtrema(a, b, c);
+  yExt  <- tippingCubic(xExt, a, b, c);
+  xStable <- tippingCubicStableFixedPoints(a, b, c);
+  yStable <- tippingCubic(xStable, a, b, c);
+  plot(x, y, type="l", ...);
+  lines(c(-3, 3), c(0, 0), col="blue");
+  points(xExt, yExt, col="red");
+  points(xStable, yStable, col="green");
+}
+
+
+plotCoupledTippingCubics <- function(coupledTippingParams, coupledTippingState, ...)
+{
+  cpDim <- coupledTippingDim(coupledTippingParams);
+  cpDimnames <- coupledTippingDimnames(coupledTippingParams);
+  for (i in 1L:cpDim)
+  {
+    u <- upstreamImpact(coupledTippingParams, coupledTippingState, i);
+    plotTippingCubic(coupledTippingParams$a[i], coupledTippingParams$b[i], coupledTippingParams$c[i] + u, main=cpDimnames[i], ...);
+    readline(sprintf("%s -- hit return", cpDimnames[i]));
+  }
+}
+
+
+empowermentBarplot <- function(e, numNodes, numStates=NULL, ...)
+{
+  barplot(e, ylim=c(0, numNodes), ...);
+  if (!is.null(numStates))
+  {
+    eMax <- log2(numStates);
+    lines(c(-1, length(e) * 1.2 + 1L), c(eMax, eMax), col="blue");
+  }
+}
+
+
+barplotByAgentImpactCorrelation <- function(a, col1Name, col2Name, ...)
+{
+  b <- by(a, a$agentImpact, function(d) { if(length(unique(d[[col2Name]])) > 1L) { return(cor(d[[col1Name]], d[[col2Name]])); }; return(NA); })
+  barplot(b, las=2, ...);
+  return(invisible(b));
+}
+
+
+empowermentBoxplot <- function(a, empowermentColumn, numNodes, ...)
+{
+  boxplot(by(a[[empowermentColumn]], a$agentImpact, function(x) { return(x); }), ylim=c(0, numNodes), las=2, ...);
+}
+
+
+hoppingDemo <- function(ctp, agentImpact, nSteps, dtime)
+{
+  ## ctp <- makeToyHoppingCoupledTippingParams();
+  n <- coupledTippingDim(ctp);
+  fpList <- coupledTippingAllStableFixedPoints(ctp);
+  actuation <- rep(0, n);
+  actuation[1] <- 1;
+  s <- agentImpactedCoupledTippingTimeSeries(ctp, actuation, agentImpact, fpList[[1]], nSteps, nSteps, dtime);
+  plotODESeries(s, ylim=c(-2, 2));
+  return(invisible(s));
 }
