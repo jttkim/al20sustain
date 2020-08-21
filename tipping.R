@@ -952,9 +952,20 @@ plotODESeries <- function(odeResult, ...)
 }
 
 
+plotTangent <- function(x, y, deriv, dx, lineCol)
+{
+  x1 <- x - dx;
+  x2 <- x + dx;
+  y1 <- y - deriv * dx;
+  y2 <- y + deriv * dx;
+  lines(c(x1, x2), c(y1, y2), col=lineCol);
+}
+
+
 plotTippingCubic <- function(a, b, c, ...)
 {
-  
+  interceptCol <- "#404040ff";
+  interceptBw <- 0.03;
   x <- -1000:1000 / 500;
   # FIXME: code repetition to tippingPointDiffEq
   y <- tippingCubic(x, a, b, c);
@@ -962,10 +973,22 @@ plotTippingCubic <- function(a, b, c, ...)
   yExt  <- tippingCubic(xExt, a, b, c);
   xStable <- tippingCubicStableFixedPoints(a, b, c);
   yStable <- tippingCubic(xStable, a, b, c);
-  plot(x, y, type="l", ...);
-  lines(c(-3, 3), c(0, 0), col="blue");
+  derivStable <- tippingCubicDerivative1(xStable, a, b);
+  plot(x, y, type="l", xlab="x", ylab="dx / dt", ...);
+  lines(c(-3, 3), c(0, 0), col="grey");
+  plotTangent(xStable[1], yStable[1], derivStable[1], 0.5, "blue");
+  if (length(xStable) > 1)
+  {
+    plotTangent(xStable[2], yStable[2], derivStable[2], 0.5, "blue");
+  }
+  if (c != 0.0)
+  {
+    lines(c(-interceptBw, interceptBw), c(0, 0), col=interceptCol);
+    lines(c(-interceptBw, interceptBw), c(c, c), col=interceptCol);
+    lines(c(0, 0), c(0, c), col=interceptCol);
+  }
   points(xExt, yExt, col="red");
-  points(xStable, yStable, col="green");
+  points(xStable, yStable, col="blue");
 }
 
 
@@ -1017,6 +1040,21 @@ hoppingDemo <- function(ctp, agentImpact, nSteps, dtime)
   s <- agentImpactedCoupledTippingTimeSeries(ctp, actuation, agentImpact, fpList[[1]], nSteps, nSteps, dtime);
   plotODESeries(s, ylim=c(-2, 2));
   return(invisible(s));
+}
+
+
+cubicDemoPlots <- function()
+{
+  epsdevice("cubicdemo_intercept000.eps");
+  plotTippingCubic(1, 1, 0, ylim=c(-2.5, 2.5));
+  dev.off();
+  epsdevice("cubicdemo_intercept025.eps");
+  plotTippingCubic(1, 1, 0.25, ylim=c(-2.5, 2.5));
+  dev.off();
+  epsdevice("cubicdemo_intercept100.eps");
+  plotTippingCubic(1, 1, 1, ylim=c(-2.5, 2.5));
+  dev.off();
+  return(invisible(list()));
 }
 
 
