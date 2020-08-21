@@ -996,7 +996,7 @@ empowermentBarplot <- function(e, numNodes, numStates=NULL, ...)
 barplotByAgentImpactCorrelation <- function(a, col1Name, col2Name, ...)
 {
   b <- by(a, a$agentImpact, function(d) { if(length(unique(d[[col2Name]])) > 1L) { return(cor(d[[col1Name]], d[[col2Name]])); }; return(NA); })
-  barplot(b, las=2, ...);
+  barplot(b, las=2, xlab="agentImpact", ylab=sprintf("r(%s, %s)", col1Name, col2Name), ...);
   return(invisible(b));
 }
 
@@ -1017,4 +1017,45 @@ hoppingDemo <- function(ctp, agentImpact, nSteps, dtime)
   s <- agentImpactedCoupledTippingTimeSeries(ctp, actuation, agentImpact, fpList[[1]], nSteps, nSteps, dtime);
   plotODESeries(s, ylim=c(-2, 2));
   return(invisible(s));
+}
+
+
+singleRunIeeeAlife2020Plots <- function(a, n, epsPrefix)
+{
+  ai030 <- a[a$agentImpact == 0.3, ];
+  ai070 <- a[a$agentImpact == 0.7, ];
+  epsdevice(sprintf("%s_emp.eps", epsPrefix));
+  empowermentBoxplot(a, "transientEmpowerment", n);
+  dev.off();
+  epsdevice(sprintf("%s_empsust.eps", epsPrefix));
+  empowermentBoxplot(a, "sustainableEmpowerment", n);
+  dev.off();
+  epsdevice(sprintf("%s_corr_dss_emp_ai030.eps", epsPrefix));
+  plot(ai030$derivSquaredSum, ai030$transientEmpowerment);
+  dev.off();
+  epsdevice(sprintf("%s_corr_dss_emp_ai070.eps", epsPrefix));
+  plot(ai070$derivSquaredSum, ai070$transientEmpowerment);
+  dev.off();
+  epsdevice(sprintf("%s_corr_dss_emp.eps", epsPrefix));
+  barplotByAgentImpactCorrelation(a, "derivSquaredSum", "transientEmpowerment", ylim=c(-1, 1));
+  dev.off();
+  epsdevice(sprintf("%s_corr_dss_empsust.eps", epsPrefix));
+  barplotByAgentImpactCorrelation(a, "derivSquaredSum", "sustainableEmpowerment", ylim=c(-1, 1));
+  dev.off();
+  return(invisible(list(a=a, ai030=ai030, ai070=ai070)));
+}
+
+
+allIeeeAlife2020Plots <- function(d)
+{
+  l <- list();
+  epsPrefix <- sprintf("n%02d_full_small", d$n);
+  l[[epsPrefix]] <- singleRunIeeeAlife2020Plots(d$adSmall$agentImpactTe, d$n, epsPrefix);
+  epsPrefix <- sprintf("n%02d_chain_small", d$n);
+  l[[epsPrefix]] <- singleRunIeeeAlife2020Plots(d$adChainSmall$agentImpactTe, d$n, epsPrefix);
+  epsPrefix <- sprintf("n%02d_full_large", d$n);
+  l[[epsPrefix]] <- singleRunIeeeAlife2020Plots(d$adLarge$agentImpactTe, d$n, epsPrefix);
+  epsPrefix <- sprintf("n%02d_chain_large", d$n);
+  l[[epsPrefix]] <- singleRunIeeeAlife2020Plots(d$adChainLarge$agentImpactTe, d$n, epsPrefix);
+  return(invisible(l));
 }

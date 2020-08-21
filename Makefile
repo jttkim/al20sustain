@@ -1,4 +1,4 @@
-MANUSCRIPT	= alife2020_sustainability
+MANUSCRIPT	= ieee_alife_2020_sustainability
 TEXFILES	= $(MANUSCRIPT:%=%.tex)
 PSFILES		= $(MANUSCRIPT:%=%.ps)
 PDFFILES	= $(MANUSCRIPT:%=%.pdf)
@@ -6,7 +6,7 @@ PDFLABSHEETS	= $(LABSHEETS:%=%.pdf)
 
 all : $(PDFFILES)
 
-$(TEXFILES) : alifeconf.sty al20sustainfigs.Rout
+$(TEXFILES) : IEEEtran.cls IEEEtran.bst # al20sustainfigs.Rout
 
 check :
 	Rscript --vanilla -e 'library("testthat"); if (sum(as.data.frame(test_file("tipping_test.R"))$$failed) > 0L) { stop("tests failed"); }'
