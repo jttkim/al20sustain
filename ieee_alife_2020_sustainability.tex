@@ -19,9 +19,10 @@
 \newcommand{\sustainableempowerment}{\ensuremath{\empowerment^{\mathrm{sust}}}}
 \newcommand{\setsymbol}[1]{\ensuremath{\mathcal{#1}}}
 \newcommand{\stateset}{\ensuremath{\setsymbol{S}}}
-
-
-
+\newcommand{\couplingconstant}{\ensuremath{d}}
+\newcommand{\couplingfunction}{\ensuremath{C}}
+\newcommand{\sumderivsquares}{\ensuremath{T}}
+\newcommand{\impactstrength}{\ensuremath{E}}
 
 % Daniel's comments
 %\newcommand{\dpnote}[1]{{\color{magenta} \fbox{#1 \ref{undefined-ref-remove-when-fixed}}}}
@@ -152,6 +153,15 @@ by a succession of technological developments, starting with the
 emergence of agriculture and more recently the inclusion of fertilisers and
 plant breeding, culminating in the Green Revolution.
 
+Another issue with approaching sustainability through a lens of
+ecosystems stability is that states may exist that are very stable and
+that are considered unsustainable nonetheless. As an example, the
+problem with global warming is not necessarily that a warmer global
+climate would be less stable. Indeed, there have been periods in the
+earth's history with a considerable warmer climate than what we have
+today. Rather, the major problem with climate change is the disruption
+it would cause to human economy and society.
+
 % introduce tipping systems
 
 % discuss problems of "unwanted" / "unsustainable" stable fixed points
@@ -212,7 +222,7 @@ dynamics of each tipping element $i$ are determined by the differential
 equation
 \begin{equation}
   \label{eq_coupledwithagent}
-  \frac{dx_i}{dt} = f(\vectorsym{x}) = x_i - x_i^3 + c_i + C_i(\vectorsym{x}) + \agentimpact_i(t)
+  \frac{dx_i}{dt} = f(\vectorsym{x}) = x_i - x_i^3 + c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i(t)
 \end{equation}
 where $c_i$ is a random value that is drawn from a uniform
 distribution centred on $0$ and constant for a given system,
@@ -223,11 +233,11 @@ plastic, phosphates or other chemicals) is released into the
 environment. The coupling function is given by
 \begin{equation}
   \label{eq_couplingfunction}
-  C_i(\vectorsym{x}) = \sum_j d_{ji} x_j
+  \couplingfunction_i(\vectorsym{x}) = \sum_j \couplingconstant_{ji} x_j
 \end{equation}
-where the coupling parameters $d_{ji}$ are drawn from a uniform
+where the coupling parameters $\couplingconstant_{ji}$ are drawn from a uniform
 $0$-centred distribution for $j < i$ and set to $0$ otherwise, i.e.\
-$(d_{ji})$ is an upper triangular matrix. \dpnote{is that what you
+$(\couplingconstant_{ji})$ is an upper triangular matrix. \dpnote{is that what you
   wanted?}
 
 This design of the environment comprised of tipping elements governed
@@ -235,7 +245,7 @@ by cubic differential equations falls into the general class of models
 reviewed by Klose \textit{et al.}\
 \cite{Klose2019_interactingtippingelements}.
 
-Restricting the interaction matrix $d_{ji}$ to an upper triangular
+Restricting the interaction matrix $\couplingconstant_{ji}$ to an upper triangular
 matrix means that an element $j$ will only act on elements $i$ with a
 larger index, $i>j$, but
 never will an element $i$ act on an element $j$ of lower index. In
@@ -310,7 +320,7 @@ more detail below.
     equations. Fixed points $x_{-}$ and $x_{+}$ are shown as blue. The
     blue lines indicate the gradients at the fixed points. Extrema are
     shown in red. The intercept
-    $\Delta dx_i / dt = c_i + C_i(\vectorsym{x}) + \agentimpact_i(t)$ is
+    $\Delta dx_i / dt = c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i(t)$ is
     shown as a dark grey bar. Top: At $\Delta dx_i / dt = 0$,
     gradients at both fixed points are equal. Middle: At
     $0 < \Delta dx_i / dt < \ccrit$, the gradient at $x_{-}$ is flatter
@@ -323,7 +333,7 @@ more detail below.
 
 Each element in our system has one or two stable fixed points. For the
 special case of
-$c_i = 0, C_i(\vectorsym{x}) = 0, \agentimpact_i(t) = 0$, there are two
+$c_i = 0, \couplingfunction_i(\vectorsym{x}) = 0, \agentimpact_i(t) = 0$, there are two
 stable fixed points which can be straightforwardly found as
 $x_{-} = -1$ and $x_{+} = 1$. The local extrema in this special case
 can be found at $\pm \xextremum = \pm 1 / \sqrt{3}$, and the rate of
@@ -337,15 +347,16 @@ $dx / dt$ (vertical) axis while the extrema remain unchanged, and consequently,
 the stable fixed points are constrained to $x_{-} < -\xextremum$ and
 $x_{+} > \xextremum$ respectively. Element $i$ has two stable fixed
 points if
-$-\ccrit < c_i + C_i(\vectorsym{x}) + \agentimpact_i < \ccrit$, as
-illustrated in Fig.~\ref{fig_cubicdemo}. Elements also have an
+$-\ccrit < c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i <
+\ccrit$,
+as illustrated in Fig.~\ref{fig_cubicdemo}. Elements also have an
 unstable fixed point, which merges into a semi-stable fixed point in
 the corner cases of
-$c_i + C_i(\vectorsym{x}) + \agentimpact_i = \pm \ccrit$, but we will
+$c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i = \pm \ccrit$, but we will
 subsequently focus on fully stable fixed points only.
 Figure~\ref{fig_cubicdemo} % do not abbreviate at sentence beginning
 also shows that, as the intercept
-$c_i + C_i(\vectorsym{x}) + \agentimpact_i(t)$ increases, the gradient
+$c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i(t)$ increases, the gradient
 of the cubic function gets flatter at $x_{-}$ and steeper at $x_{+}$.
 This gradient can also be interpreted as the speed with which the
 tipping element returns to the fixed point after a small perturbation.
