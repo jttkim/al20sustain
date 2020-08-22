@@ -271,19 +271,19 @@ more detail below.
 % $\vectorsym{x} = [x_1, \ldots, x_n]^T$ whose interaction is modelled
 % by a diff
 
-%  a coupling function $C_i(\vectorsym{x})$
+%  a coupling function $\couplingfunction_i(\vectorsym{x})$
 % \begin{equation}
 %   \label{eq_coupled}
-%   \frac{dx_i}{dt} = ax_i - bx_i^3 + c_i + C_i(\vectorsym{x})\;.
+%   \frac{dx_i}{dt} = ax_i - bx_i^3 + c_i + \couplingfunction_i(\vectorsym{x})\;.
 % \end{equation}
 % Following \cite{Klose2019_interactingtippingelements}, we use coupling
 % functions
 % \begin{equation}
 %   \label{eq_couplingfunction}
-%   C_i(\vectorsym{x}) = \sum_j d_{ji} x_j
+%   \couplingfunction_i(\vectorsym{x}) = \sum_j \couplingconstant_{ji} x_j
 % \end{equation}
-% but unlike their work, we require $d_{ji} = 0$ if $j \ge i$,
-% i.e.\ $(d_{ij})$ to be a lower triangular matrix. This restriction
+% but unlike their work, we require $\couplingconstant_{ji} = 0$ if $j \ge i$,
+% i.e.\ $(\couplingconstant_{ij})$ to be a lower triangular matrix. This restriction
 % ensures that, for coupled tipping elements, their bi-stable character
 % is preserved (bi-directional interactions between tipping elements can
 % result in global dynamical features that amount to a qualitative
@@ -299,7 +299,7 @@ more detail below.
 % $\agentimpact_i(t)$:
 % \begin{equation}
 %   \label{eq_coupledwithagent}
-%   \frac{dx_i}{dt} = ax_i - bx_i^3 + c_i + C_i(\vectorsym{x}) + \agentimpact_i(t)
+%   \frac{dx_i}{dt} = ax_i - bx_i^3 + c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i(t)
 % \end{equation}
 % This affects the rate of change in the $x_i$; examples would be modelling
 % emissions of carbon dioxide, release of nutrients
@@ -352,34 +352,44 @@ $-\ccrit < c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i <
 as illustrated in Fig.~\ref{fig_cubicdemo}. Elements also have an
 unstable fixed point, which merges into a semi-stable fixed point in
 the corner cases of
-$c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i = \pm \ccrit$, but we will
-subsequently focus on fully stable fixed points only.
-Figure~\ref{fig_cubicdemo} % do not abbreviate at sentence beginning
-also shows that, as the intercept
-$c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i(t)$ increases, the gradient
-of the cubic function gets flatter at $x_{-}$ and steeper at $x_{+}$.
-This gradient can also be interpreted as the speed with which the
-tipping element returns to the fixed point after a small perturbation.
-A more negative gradient results in a higher speed, and is therefore
-indicative of a higher level of stability.
+$c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i = \pm
+\ccrit$.
+It is worth noting that the unstable fixed point is the boundary
+between the basins of attraction of the stable fixed point. Klose et
+al.\ \cite{Klose2019_interactingtippingelements} refer to $x_{-}$ and
+$x_{+}$ as the ``normal'' and the ``tipped'' state, respectively.
+
+Fig.~\ref{fig_cubicdemo} also shows that as the intercept
+$c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i(t)$
+increases, the gradient of the cubic function gets flatter at $x_{-}$
+and steeper at $x_{+}$. This gradient quantifies the speed with which
+the tipping element returns to the fixed point after a small
+perturbation, and it can therefore serve as an indicator of stability.
+We therefore characterise stability of a fixed point
+$\vectorsym{x}_* = (x_{1*}, \ldots, x_{n*})^T$ with the sum of
+derivative squares,
+\begin{equation}
+  \label{eq_dss}
+  \sumderivsquares = \sum_i (1 - 3 x_{i*}^2)^2.
+\end{equation}
 
 Due to the DAG structure of interactions, the stable fixed points of
 element $i$ only depend on the state of elements $1, \ldots, i - 1$.
 This enables efficient computation of the stable fixed points of the
 entire system.
 
-If the intercept is constant, $C_i(\vectorsym{x}$ will converge as
+If the intercept is constant, $\couplingfunction_i(\vectorsym{x}$ will converge as
 elements $1, \ldots, i - 1$ converge towards their respective fixed
 points, which will facilitate convergence of element $i$ as well
 \dpnote{Unclear; also, where does the bracket close}.
 Allowing cyclic interactions would result in the emergence of
 qualitatively different dynamics, such as cyclic attractors. As a
-simple example, setting $d_{ij} = -d_{ji}$ \dpnote{is that for a
+simple example, setting $\couplingconstant_{ij} = -\couplingconstant_{ji}$ \dpnote{is that for a
   specific value? How does one see that this happens} and setting all other
 parameters to $0$ gives rise to a cyclic attractor in which elements
 $i$ and $j$ oscillate between negative and positive values.
 
-From this perspective, restricting $(d_{ji})$ to an upper triangular
+From this perspective, restricting $(\couplingconstant_{ji})$ to an upper triangular
 matrix of (randomly chosen) values can be considered to define a very
 general class of coupled cubic differential equations in which all
 elements retain the property of having two guaranteed stable fixed
@@ -415,13 +425,30 @@ for a fixed point \dpnote{what is this quantity going to do for us?
 
 
 \subsection{Empowerment}
+\label{section_empowerment}
 
+\begin{figure}
+
+  \centerline{\includegraphics[width=7cm]{agentimpact_ode.eps}}
+
+  \caption{Illustration of an agent impacting on an environment with
+    three tipping elements. Initially, up to $t = 100$, the
+    environment is at the stable fixed point $(x_{1+}, x_{2-}, x_{3+}$. The agent's impact is
+    applied at $100 \le t  200$, causing elements $1$ and $2$ to change
+    their discretised state. After removing the agent's impact at $t =
+    200$, element $1$ returns to its initial state while element $2$
+    remains at $x_{2+}$. The gradual impact experienced by element $3$
+    do not amount to a change in discretised state. Simulation of the
+    actuation shown here establishes that state $(x_{1+}, x_{2+},
+    x_{3+})$ is accessible from state $(x_{1+}, x_{2-}, x_{3+})$.}
+  \label{fig_agentimpact}
+\end{figure}
 
 % \section{Combined Framework}
 
 % We present now the core framework.
 % An individual ``cubic tipping element'' as defined by
-% Eq.~\ref{eq_cubic} has one or two stable fixed points. In the simple
+% Eq.~\eqref{eq_cubic} has one or two stable fixed points. In the simple
 % special case of $c = 0$, there are two stable fixed points which can
 % be straightforwardly found as $x_{-} = -1$ and $x_{+} = 1$,
 % \cite{Klose2019_interactingtippingelements} refer to these as the
@@ -432,7 +459,7 @@ for a fixed point \dpnote{what is this quantity going to do for us?
 % The condition for an individual tipping element to have two stable
 % fixed points can thus be stated more precisely as
 % $-\ccrit < c < \ccrit$. This condition generalises to
-% $-\ccrit < c + C_i(\vectorsym{x}) + \agentimpact_i < \ccrit$ for a
+% $-\ccrit < c + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i < \ccrit$ for a
 % tipping element $i$ in a system of coupled elements subject to impacts
 % by the agent.
 
@@ -451,16 +478,18 @@ impact actuators $\agentimpact_i$.
 
 We use the stable fixed points of the unimpacted environment, i.e.\ with
 $\agentimpact_i(t) = 0\; \forall i, t$, as starting points for which we
-characterise empowerment, and then allow the agent to impact the
-environment by choosing to set $\agentimpact_i$ to $-E$, $0$ or $E$,
-where $E$ is a parameter setting the available intensity of the impact, or
-control, of the agent on the environment.
+characterise empowerment. We allow the agent to impact the
+environment by choosing to set $\agentimpact_i$ to $-\impactstrength$, $0$ or $\impactstrength$,
+where $\impactstrength$ is a parameter setting the strength of the impact, or
+control, of the agent on the environment. A setting of
+$\vectorsym{\agentimpact} = (\agentimpact_i, \ldots,
+\agentimpact_n)^T$ is called an actuation.
 
 If these controls were applied permanently and sufficiently large,
-e.g.\ if one had $E \gg \ccrit + \max_i C_i$, the agent could directly
+e.g.\ if one had $\impactstrength \gg \ccrit + \max_i \couplingfunction_i$, the agent could directly
 ``dial'' the state of each component, and consequently its empowerment
 would attain the maximal value of $n$ bits. At the other extreme,
-setting $E = 0$ prevents the agent from having any impact on the
+setting $\impactstrength = 0$ prevents the agent from having any impact on the
 environment at all and would cause its empowerment to vanish in all
 states.
 
@@ -474,12 +503,12 @@ the agent apply its impact for a limited time only, which is followed
 by a relaxation period during which the environment evolves on its own
 and converges towards one of its fixed points. A state $s'$ found
 \dpnote{do you mean ``reached''} at
-at the end of this relaxation period is defined to be $E$-accessible
+at the end of this relaxation period is defined to be $\impactstrength$-accessible
 from the initial state $s$. Formally, empowerment is given by
 \begin{equation}
   \label{eq_empowerment}
-  \empowerment(E, s) =
-  \log_2(|\{s': s' \mbox{ is } E\mbox{-accessible from } s\}|)
+  \empowerment(\impactstrength, s) =
+  \log_2(|\{s': s' \mbox{ is } \impactstrength\mbox{-accessible from } s\}|)
 \end{equation}
 
 In previous work, e.g.\ \cite{Salge2014_empowermentintro} the agent's
@@ -510,7 +539,7 @@ to be reversibly accessible from a state $s$ if $s'$ is accessible
 from $s$ and $s$ is accessible from $s'$. This allows us to apply our
 previous definition of sustainable empowerment as
 \begin{equation}
-  \label{eq_empowerment}
+  \label{eq_sustainableempowerment}
   \begin{aligned}
     & \sustainableempowerment(E, s) = \\
     & \log_2(|\{s': s' \mbox{ is
@@ -523,10 +552,44 @@ previous definition of sustainable empowerment as
 
 The software for the analyses presented here was written in R 3.4.4
 \cite{RManual2018} and requires the \texttt{deSolve} package for
-solving \ref{eq_coupledwithagent} using Runge-Kutta 4th order integration.
-The code is available at
-\texttt{https://github.com/jttkim/al20sustain}.
-% todo: change repo name to something else?
+solving \eqref{eq_coupledwithagent} using Runge-Kutta 4th order
+integration.
+
+Computing empowerment and sustainable empowerment \eqref{eq_empowerment}
+and sustainable empowerment \eqref{eq_sustainableempowerment} requires a
+matrix of accessibility for all pairs of states $(s, s')$. The key
+process in computing accessibility is to determine the fixed point
+$s_{\vectorsym{\agentimpact}}$ reached with the agent impact active
+when starting from state $s$, and to determine the final state $s'$
+reached from $s_{\vectorsym{e}}$ after removing the agent impact.
+Using numerical integration to compute accessibility is
+computationally demanding, as it involves iterating over the Cartesian
+product of all states and all actuations.
+
+The DAG structure of interactions enables us to approximately
+determine the state $s'$ reached after applying and subsequently
+removing the agent's impact without numerical integration. The
+coupling function $\couplingfunction_i(\vectorsym{x}_*)$ depends only
+on $x_{1*} \ldots, x_{i-1*}$. On this basis we can determine whether
+$x_i$ is in the basin of attraction of $x_{-}$ or $x_{+}$, assuming
+that the upstream elements $1, \ldots, i - 1$ have converged to the
+fixed point already. This assumption is an approximation, as the
+elements are following their respective trajectories simultaneously,
+rather than converging sequentially.
+
+Our approximation is most likely to result in errors when $x_i$ are
+close to the boundary between basins of attraction. We expect that
+this is a rare condition as the points visited during accessibility
+matrix computation are not biased towards the basin boundaries. With
+small $\impactstrength$, the fixed points with and without agent impact are similar,
+so the starting points are in fact biased to be close to fixed points
+and thus distant from boundaries. As $\impactstrength$ increases, starting points
+cover a broader range and the bias towards fixed points diminishes,
+but proximity to a basin boundary can nonetheless be expected to be a
+rare event.
+
+The code used to generate the results presented in this contribution
+is available at \texttt{https://github.com/jttkim/al20sustain}.
 
 
 \section{Results}
@@ -541,7 +604,7 @@ The code is available at
   \end{center}
 
   \caption{Empowerment (top panel) and sustainable empowerment
-    (bottom panel) as a function of $E$. Each boxplot summarises
+    (bottom panel) as a function of $\impactstrength$. Each boxplot summarises
     sustainability values for all initial states. The middle bar of
     a box shows the median, the box indicates the central quartiles,
     whiskers extend to the furthest point less than 1.5 times the
@@ -550,12 +613,30 @@ The code is available at
   \label{fig_empowermentprofiles}
 \end{figure}
 
-\dpnote{I believe axes will still be processed}
+We show results for a system of $8$ tipping elements, with values
+$-0.1 \le c_i \le 0.1$ and $-0.2 \le \couplingconstant_i \le 0.2$
+drawn from uniform random distributions.
 
-Empowerment and sustainable empowerment as a function of $E$ are shown
-in Fig.~\ref{fig_empowermentprofiles}.
+Empowerment and sustainable empowerment as a function of impact
+strength $\impactstrength$ are shown in Fig.~\ref{fig_empowermentprofiles}. As
+explained in section \ref{section_empowerment}, with $\impactstrength =
+0$ is $0$ for all states. As $\impactstrength$ increases, actuations can facilitate
+access to other state and states with $\empowerment(E, s) > 0$ appear.
+Further growth of $\impactstrength$ results in increasing empowerment of states as
+well as in the number of states with a non-zero empowerment. As $\impactstrength$
+approaches $1$, all states become maximally empowered. The maximum
+remains below $8$ because elements can have only one fixed point, and
+therefore not all combinations in $\{-, +\}^{8}$ correspond to
+existing fixed points.
 
-(to be completed from Old Discussion in appendix)
+The qualitative features of sustainable empowerment as a function of
+$\impactstrength$ are similar to those seen for empowerment. The main differences
+are that higher values of $\impactstrength$ are required to obtain non-zero
+sustainable empowerment, and that higher values are also required for
+states with submaximal empowerment to disappear. Both these features
+are straightforwardly explained by the condition of reversible
+accessibility which underpins sustainable empowerment and is a
+stricter condition than plain accessibility.
 
 
 \begin{figure}
@@ -569,17 +650,17 @@ in Fig.~\ref{fig_empowermentprofiles}.
   \end{center}
 
   \caption{Scatterplot of the sum of derivative squares and
-    empowerment at $E = 0.3$ (top) and $E = 0.7$ (bottom).}
+    empowerment at $\impactstrength = 0.3$ (top) and $\impactstrength = 0.7$ (bottom).}
   \label{fig_dssemp}
 
 \end{figure}
 
-Fig.~\ref{fig_dssemp} shows scatterplots of the sum of derivative
-squares. At the smaller actuator range $E = 0.3$, empowerment
-decreases as the sum of derivative square increases. At the larger
-value $E = 0.7$, this trend reverses to a positive correlation.
-\dpnote{This means?}
-
+We now turn to investigating relationships between empowerment and
+stability. Fig.~\ref{fig_dssemp} shows scatterplots of the sum of
+derivative squares $\sumderivsquares$, as defined in \eqref{eq_dss}.
+At the smaller actuator range $\impactstrength = 0.3$, empowerment decreases as the
+sum of derivative square increases. At the larger value $\impactstrength = 0.7$,
+this trend reverses to a positive correlation.
 
 \begin{figure}
 
@@ -598,26 +679,46 @@ value $E = 0.7$, this trend reverses to a positive correlation.
 
 \end{figure}
 
-Fig.~\ref{fig_dssempcorr} shows the Pearson correlation coefficients
-between the sum of derivative squares and empowerment and sustainable
-empowerment, respectively. \dpnote{And we see?}
+These two examples are illustrative of a general trend associated with
+increasing impact strengths, as shown in Fig.~\ref{fig_dssempcorr}
+which displays the Pearson correlation coefficients between
+$\sumderivsquares$ and $\empowerment$ and $\sustainableempowerment$,
+respectively.
 
-The pattern of negative correlations at small values of $E$ and
-positive correlations at larger values is corroborated. For
-sustainable empowerment, positive correlations at larger values of $E$
-are also found, while a negative correlation at small $E$ is largely
-missing. \dpnote{This is an important observation because it shows
-  that, once one only considers sustainable empowerment which takes
-  into account reversibility, one concentrates on impact where the
-  environment exhibits enough stability to be able counteract it (I
-  assume this was more or less your argument)}
+A negative correlation between $\sumderivsquares$ and $\empowerment$
+means that on average, more states are accessible from fixed points
+with shallower gradients. At a small impact strengths, many actuations
+do not result in a permanent change of state in a tipping element. As
+illustrated in Fig.~\ref{fig_cubicdemo}, for a fixed point with a
+shallower gradient, a smaller change in the intercept causes the fixed
+point to vanish and thus the element to tip. Therefore, permanently
+changing the state of elements with a shallower gradient is easier for
+an agent with a weaker impact. This results in the negative
+correlations seen up to around $\impactstrength = 0.6$ and peaking around $\impactstrength = 0.3$.
 
+The positive correlations seen with stronger impacts and peaking
+around $\impactstrength = 0.7$ are likely due to indirect effects. Steeper gradients
+are associated with larger absolute values of $x_i$, as can be seen in
+Fig.~\ref{fig_cubicdemo}. Therefore, their change has a stronger
+effect on the coupling function $\couplingfunction$, explaining how
+impacts that are sufficiently strong to permanently affect such
+elements can facilitate access to a larger number of states.
+
+For sustainable empowerment, negative correlations between
+$\sumderivsquares$ and $\sustainableempowerment$ at small $\impactstrength$ are
+largely missing. This results from the reversible accessibility
+requirement: A shallow gradient enables weak agent to change a state,
+but as gradients are likely steeper at the accessed state, the agent
+cannot reverse the change. Positive correlations between
+$\sumderivsquares$ and $\sustainableempowerment$ are more prominent
+than those with $\empowerment$ at higher $\impactstrength$, possibly because in an
+intermediate range around $0.4 \le \impactstrength \le 0.6$, the effects resulting
+in positive and negative correlations cancel each other out.
 
 
 \section{Discussion and Outlook}
 
-\textbf{to be updated and extended to discuss stability / correlation
-  to sum of derivative squares}
+% todo: mention / briefly discuss phase transition?
 
 % This deficiency has long been an impediment to public discourse
 % \cite{Kim2001_plantbiodiversity}.
@@ -626,7 +727,8 @@ We have introduced systems comprised of coupled tipping elements
 affected by an agent as a model to study sustainability and to
 quantify it using the principled concept of empowerment
 \cite{Salge2014_empowermentintro}, rooted in information theory
-\cite{CoverThomas1991_informationtheory}. The cubic differential
+\cite{CoverThomas1991_informationtheory}, and applying concepts we
+previously developed \cite{Kim2009_sustainability}. The cubic differential
 equation systems which we use here capture essential aspects of
 sustainability have been applied in sustainability research and
 beyond, as reviewed e.g.\ by
@@ -662,29 +764,75 @@ and our control over our action at a population or society level is
 imperfect as well. Therefore, it is important to understand the impact
 of these imperfections on sustainability.
 
+A general method for assessing stability of fixed points in complex
+systems described in terms of differential equations has been
+introduced by May \cite{May1972_stablelargecomplexsystem}. This
+approach uses a Jacobian $A = (a_{ji})$ which, for our system and a
+fixed point $\vectorsym{x}_*$, evaluates to
+\begin{equation}
+  \label{eq_jacobian}
+  a_{ji} = \frac{d x_i}{d x_j d t} = \delta_{ji} (1 - 3 x_{i*}^2) + \couplingconstant_{ji}
+\end{equation}
+where $\delta_{ji}$ is Kronecker's delta. \dpnote{Check that this is
+  not a repeat}
 
-% TODO discuss asymmetry
-% Shifting the offset c in a tipping unit permits producing a
-% hysteresis which makes it easier (for the agent) to "tip" the system
-% into the other stable state, while the reverse operation becomes
-% more difficult.
+According to May, the mean square value $\langle a_{ji}^2 \rangle$ is
+used to predict whether $\vectorsym{x}_*$ is a stable fixed point. We
+have shown that all fixed points are stable in our system. The
+elements outside of the Jacobian's diagonal are coupling constants
+$\couplingconstant_{ji}$, so they are identical for all fixed points
+and of no use to characterise them individually. The elements on the
+diagonal are the gradients used for characterising fixed points with
+the sum of squared derivatives \eqref{eq_dss}. So interestingly, the
+gradients that form part of May's classical method to predict
+stability prove to be useful for further quantitative characterisation
+of stability as well.
 
-It is interesting to note that the offset $c$ produces a hysteresis
-which makes it easier for the agent to tip the system in one direction
-(from $x_{-}$ to $x_{+}$ if $c > 0$) while the reverse operation
-becomes more difficult. This enables applying the concept of
-sustainable empowerment, which we introduced in
-\cite{Kim2009_sustainability}, to systems of coupled tipping elements
-as well. \dpnote{what's the difference to what we do now?}
+Without considering sustainability, empowerment suggests focusing on
+elements with shallow gradients. These can be expected to economic
+cost-effectiveness e.g.\ of exploiting a resource. However, as we have
+seen in our system, such elements may be much more difficult to
+restore to their ``normal'' state once they have been put into their
+``tipped'' state.
 
-Finally, a strength of our model is that it allows efficient
-computation of fixed point as well as integrating differential
-equations to produce time series. This opens perspectives to
-investigate the potential to use time series for
-characterising and quantifying sustainability, for instance as a tool to
-identify risks and early warning signs of breakdowns in sustainability
-or to identify elements that are especially relevant to maintaining
-sustainability.
+In contrast to this, sustainable empowerment suggests to focus more on
+impacts affecting system elements that have considerable intrinsic
+stability. While more effort may be required to exploit such
+resources, damage caused by tipping the affected elements is much
+easier to control, by suspending exploitation to enable the
+environment to return to its ``normal'' state and taking advantage of
+cheap and effective measures to aid that recovery process.
+
+Pollution of water bodies is an area that may especially benefit from
+specific analyses using sustainable empowerment. This is because
+pollution of oceans is currently a major area of concern \cite{}. At
+the same time, river systems could provide very useful precedents, as
+they have been subject to heavy pollution in the past until they have
+been successfully restored.
+
+In conclusion, we have shown that by expressly including an agent,
+such as humankind in contexts of global sustainability, and requiring
+reversibility of impacts on the environment, enables us to distinguish
+states that are merely stable from those in which we meet our own
+needs and at the same time protect the ability of future generations
+to meet their needs as well.
+
+% It is interesting to note that the offset $c$ produces a hysteresis
+% which makes it easier for the agent to tip the system in one direction
+% (from $x_{-}$ to $x_{+}$ if $c > 0$) while the reverse operation
+% becomes more difficult. This enables applying the concept of
+% sustainable empowerment, which we introduced in
+% \cite{Kim2009_sustainability}, to systems of coupled tipping elements
+% as well. \dpnote{what's the difference to what we do now?}
+
+% Finally, a strength of our model is that it allows efficient
+% computation of fixed point as well as integrating differential
+% equations to produce time series. This opens perspectives to
+% investigate the potential to use time series for
+% characterising and quantifying sustainability, for instance as a tool to
+% identify risks and early warning signs of breakdowns in sustainability
+% or to identify elements that are especially relevant to maintaining
+% sustainability.
 
 
 
@@ -871,28 +1019,28 @@ sustainability.
 \subsection{Results (Old)}
 
 We generated the variable parameters $c_i$ and the lower triangle of
-$(d_{ji})$ by drawing from uniform distributions. The values of $c_i$
+$(\couplingconstant_{ji})$ by drawing from uniform distributions. The values of $c_i$
 were drawn from $[-0.1, 1]$, and we created an environment with weaker
-coupling constants $d_{ji} \in [-0.2, 0.2]$ and one with stronger
-coupling constants $d_{ji} \in [-0.8, 2=0.8]$.
+coupling constants $\couplingconstant_{ji} \in [-0.2, 0.2]$ and one with stronger
+coupling constants $\couplingconstant_{ji} \in [-0.8, 2=0.8]$.
 
 Fig.~\ref{fig_empowermentprofiles} shows profiles of empowerment as a
-function of $E$, the agent's potential impact on the environment's
-tipping elements. At $E = 0$, empowerment is $0$ as the agent is
+function of $\impactstrength$, the agent's potential impact on the environment's
+tipping elements. At $\impactstrength = 0$, empowerment is $0$ as the agent is
 unable to make any change to the stable state of the environment.
 Fig~\ref{fig_empowermentprofiles} shows results for the ``normal''
 stable state in which most elements are at $x_{i-}$. Given to the
 symmetric method of generating our system's parameters, this
 ``normal'' is representative for the states of the system in general.
 
-At $E = 0$ the agent has no empowerment, as explained above, and this
-extends into small nonzero values of $E$. This is because for an
+At $\impactstrength = 0$ the agent has no empowerment, as explained above, and this
+extends into small nonzero values of $\impactstrength$. This is because for an
 element in the ``normal'' stable state $x_{i-}$, it is necessary that
-$E > \ccrit + C_i$ for the agent to put the element into the
-``tipped'' state $x_{i+}$. This explains the emergence of nonzero
-empowerment around $E = \ccrit$. Such shifts are somewhat easier with
-weaker coupling, which is reflected by the onset of empowerment at
-slightly lower $E$.
+$\impactstrength > \ccrit + \couplingfunction_i$ for the agent to put the element
+into the ``tipped'' state $x_{i+}$. This explains the emergence of
+nonzero empowerment around $\impactstrength = \ccrit$. Such shifts are somewhat
+easier with weaker coupling, which is reflected by the onset of
+empowerment at slightly lower $\impactstrength$.
 
 It is also noticeable from Fig.~\ref{fig_empowermentprofiles} that
 weaker coupling enables the agent to attain higher empowerment. One
@@ -900,10 +1048,10 @@ reason for this is that the number of stable states is maximal in
 systems with no coupling at all. In this special case, each element
 can be set to each of its two states, independently of all other
 elements. At the other end of the scale, a strong interaction from an
-upstream element $j$, say with $d_{ji} x_j > \ccrit$, increases the
+upstream element $j$, say with $\couplingconstant_{ji} x_j > \ccrit$, increases the
 chance that element $i$ has only one stable state altogether. As a
 result, the number of stable system states decreases as the range of
-randomly generated $d_{ji}$ increases, explaining also the lower
+randomly generated $\couplingconstant_{ji}$ increases, explaining also the lower
 plateau in empowerment seen with strong coupling.
 
 
@@ -967,6 +1115,46 @@ characterised as being in one of two discretisable states
 differential equations with a DAG, as used in this paper, can be
 considered to be the most general way of coupling that preserves the
 ``tipping element'' characteristic of the individual elements.
+
+\subsection{Old Discussion Material}
+
+
+
+Our plans to further develop this approach include studying the
+effects of providing the agent with different actuation channels. An
+alternative to allowing the agent to impact all elements equally is to
+restrict the agent to impact only one system directly. In this
+scenario, high levels of empowerment result if the agent is able to
+affect a large number of elements indirectly via their coupling. We
+therefore anticipate that stronger coupling will increase, rather than
+decrease, empowerment. It will be interesting to investigate whether
+susceptibility to ``domino effects'' between elements can be
+characterised in this way, and specifically systems in which an
+element can cause a downstream element to tip, as described by
+\cite{Brummitt2015_coupledcatastrophes}.
+
+% TODO discuss asymmetry
+% Shifting the offset c in a tipping unit permits producing a
+f% hysteresis which makes it easier (for the agent) to "tip" the system
+% into the other stable state, while the reverse operation becomes
+% more difficult.
+
+It is interesting to note that the offset $c$ produces a hysteresis
+which makes it easier(for the agent to tip the system in one direction
+(from $x_{-}$ to $x_{+}$ if $c > 0$) while the reverse operation
+becomes more difficult. This enables applying the concept of
+sustainable empowerment, which we introduced in
+\cite{Kim2009_sustainability}, to systems of coupled tipping elements
+as well.
+
+Finally, a strength of our model is that it allows efficient
+computation of fixed point as well as integrating differential
+equations to produce time series. This opens perspectives to
+investigate the potential of investigating the use of time series for
+characterising and quantifying sustainability, e.g.\ as a tool to
+identify risks of breakdowns in sustainability or to identify elements
+that are especially relevant to maintaining sustainability.
+
 
 % summarise system
 
