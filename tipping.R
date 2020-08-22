@@ -429,10 +429,23 @@ agentImpactedCoupledTippingParams <- function(coupledTippingParams, actuation, a
 }
 
 
-agentImpactedCoupledTippingTimeSeries <- function(coupledTippingParams, actuation, agentImpact, initialState, nStepsImpact, nStepsPostImpact, dTime)
+agentImpactedCoupledTippingTimeSeries <- function(coupledTippingParams, actuation, agentImpact, initialState, nStepsImpact, nStepsPostImpact, dTime, nStepsPreImpact=0L)
 {
   agentImpactedCtp <- agentImpactedCoupledTippingParams(coupledTippingParams, actuation, agentImpact);
-  s <- coupledTippingTimeSeries(agentImpactedCtp, nStepsImpact, dTime, initialState);
+  s <- NULL;
+  if (nStepsPreImpact > 0L)
+  {
+    s <- coupledTippingTimeSeries(coupledTippingParams, nStepsPreImpact, dTime, initialState);
+  }
+  s1 <- coupledTippingTimeSeries(agentImpactedCtp, nStepsImpact, dTime, initialState);
+  if (is.null(s))
+  {
+    s <- coupledTippingTimeSeries(agentImpactedCtp, nStepsImpact, dTime, initialState);
+  }
+  else
+  {
+    s <-rbind(s, coupledTippingTimeSeries(agentImpactedCtp, nStepsImpact, dTime, s[nrow(s), 2:ncol(s)]));
+  }
   s <- rbind(s, coupledTippingTimeSeries(coupledTippingParams, nStepsPostImpact, dTime, s[nrow(s), 2:ncol(s)]));
   s[, "time"] <- 0:(nrow(s) - 1) * dTime;
   return(s);
@@ -1055,6 +1068,19 @@ cubicDemoPlots <- function()
   plotTippingCubic(1, 1, 1, ylim=c(-2.5, 2.5));
   dev.off();
   return(invisible(list()));
+}
+
+
+agentImpactDemoPlot <- function()
+{
+  ctpDemo <- makeToyCoupledTippingParams();
+  ctpDemo$c <- c(0.4, 0.1, 0.4);
+  fpDemo <- coupledTippingAllStableFixedPoints(ctpDemo);
+  s <- agentImpactedCoupledTippingTimeSeries(ctpDemo, c(-1, 1, 0), 0.8, fpDemo[[1]], 1000, 1000, 0.1, 1000);
+  epsdevice("agentimpact_ode.eps");
+  plotODESeries(s, ylim=c(-2, 2));
+  dev.off();
+  return(invisible(list(ctpDemo=ctpDemo, fpDemo=fpDemo, s=s)));
 }
 
 
