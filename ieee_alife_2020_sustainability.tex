@@ -24,6 +24,32 @@
 \newcommand{\sumderivsquares}{\ensuremath{T}}
 \newcommand{\impactstrength}{\ensuremath{E}}
 
+% Daniel's comments
+%\newcommand{\dpnote}[1]{{\color{magenta} \fbox{#1 \ref{undefined-ref-remove-when-fixed}}}}
+\usepackage{ifthen}
+\newsavebox{\laterrefbox}
+\newlength{\tempwidth}
+\newcommand{\dpnote}[1]{
+  \sbox{\laterrefbox}{#1}%
+  \ifthenelse{\lengthtest{\wd\laterrefbox > \linewidth}}
+  {\setlength{\tempwidth}{\linewidth}
+   { \color{magenta}
+    \fbox{
+        \begin{minipage}{0.9\linewidth}
+          \textsl{\small #1}
+        \end{minipage}
+      }
+    }
+  }
+  {{\color{magenta}\fbox{\textsl{\small #1}}}}
+%   \fbox{\fbox{
+%   \begin{minipage}{7cm}
+%     \textsl{\small #1}
+%   \end{minipage}%
+%   }}%
+  {\color{magenta} \ref{undefined-ref-remove-when-fixed}}%
+}
+
 \begin{document}
 
 \title{Quantifying Sustainability in a System of Coupled Tipping Elements}
@@ -44,15 +70,36 @@ d.polani@herts.ac.uk}
 \maketitle
 
 \begin{abstract}
-Systems of coupled elements, with dynamics governed by cubic
-differential equations, have been established as simple and powerful
-models to study sustainability. Here we combine such systems with an
-agent which impacts upon the system. This enables characterising
-sustainability as empowerment, a property emerging from the
-interaction between the agent and the ecological systems sustaining
-it. We present initial results illustrating the effects of dynamical
-properties of the system affect on empowerment, and thereby
-potentially on sustainability.
+  Characterizing sustainability has become a core challenge when
+  trying to understand the interplay between global economical and
+  ecological dynamics and both their mutual dependence as well as
+  their competing requirements. Identifying and understanding warning
+  signs that would indicate where when a system gets irrevocably out
+  of control \emph{before} this happens would be a critical tool in
+  being able to attain a viable long-term strategy that takes the
+  needs of both economy and ecology into account.
+
+  We here explore a route towards such  quantities. In the last years,
+  the concept of \emph{empowerment} has been investigated as a measure
+  of control of an actor over one's environment, i.e.\ the potential
+  impact that an actor can have on its environment; in addition an
+  extension had been proposed towards a concept of \emph{sustainable
+    empowerment} which, in addition, limits oneself only to control
+  strategies which can be undone.
+
+  We investigate both concepts inside a framework of systems of
+  coupled elements endowed with a dynamics governed by cubic
+  differential equations, which have been established as simple but powerful
+  models to study sustainability. %   This enables characterising
+  % sustainability as empowerment, a property emerging from the
+  % interaction between the agent and the ecological systems sustaining
+  % it.
+  In this framework, we illustrate how the dynamical properties of
+  such a system affect empowerment and sustainable empowerment. The
+  results suggest that these quantities can provide relevant
+  indicators for desirable strategies to guiding such systems under
+  sustainability considerations. \dpnote{Please check whether you are
+    happy with this last section}
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -69,8 +116,9 @@ importance, a rigorous and generally applicable definition of
 sustainability continues to prove elusive. Some approaches to define
 sustainability, such as the Brundtland definition
 \cite{Brundlandcommission1987}, are frequently invoked in the context
-of considering Earth as it is, but have not been formalised to enable
-their application to other systems, such as Artificial Life models.
+of considering Earth as it is \dpnote{Do you mean ``as a whole''},
+but have not been formalised to enable their application to other
+systems, such as Artificial Life models.
 
 % \cite{Brundlandcommission1987} has described
 % sustainable development as ``development that meets the needs and
@@ -79,12 +127,14 @@ their application to other systems, such as Artificial Life models.
 
 Ecosystem stability is a prerequisite for sustainability in the sense
 that it is necessary to provide resources or ecosystem services on a
-permanent basis. An individual resource can be considered to be used
-sustainably if it is regenerated at a rate that (at least) matches the
-rate at which it is exploited. This idea underpins methods for
-measuring footprints \cite{Wackernagel2019_defyingthefootprintoracle},
-which can be aggregated over a key set of resources to calculate e.g.\
-Earth Overshoot
+permanent basis \dpnote{Unclear: do you mean that the ecosystem
+  provides ``services'' on a continued basis? Slightly ambiguous}. An
+individual resource can be considered to be used sustainably if it is
+regenerated at a rate that (at least) matches the rate at which it is
+exploited. This idea underpins methods for measuring footprints
+\cite{Wackernagel2019_defyingthefootprintoracle}, which can be
+aggregated over a key set of resources to calculate e.g.\ Earth
+Overshoot
 Day\footnote{https://www.footprintnetwork.org/2020/06/05/press-release-june-2020-earth-overshoot-day/}.
 
 A considerable proportion of sustainability work focuses on
@@ -97,19 +147,20 @@ capacity, and that resource consumption or depletion needs to be
 reduced where these boundaries are exceeded. However, for some
 resources, boundaries of production or regeneration rates can be
 greatly expanded. The most dramatic example of this is arguably
-roduction of staple foods, which has increased by orders of magnitude
-by a succession of technology developments, starting with the
-emergence of agriculture and more recently including fertilisers and
+production of staple foods, which has increased \dpnote{since when and
+compared to what?} by orders of magnitude
+by a succession of technological developments, starting with the
+emergence of agriculture and more recently the inclusion of fertilisers and
 plant breeding, culminating in the Green Revolution.
 
-Another issue with approaching sustainability through a lens of is
-that states may exist that are very stable and that are considered
-unsustainable nonetheless. As an example, the problem with global
-warming is not necessarily that a warmer global climate would be less
-stable. Indeed, there have been periods in the earth's history with a
-considerable warmer climate than what we have today. Rather, the major
-problem with climate change is the disruption it would cause to human
-economy and society.
+Another issue with approaching sustainability through a lens of
+ecosystems stability is that states may exist that are very stable and
+that are considered unsustainable nonetheless. As an example, the
+problem with global warming is not necessarily that a warmer global
+climate would be less stable. Indeed, there have been periods in the
+earth's history with a considerable warmer climate than what we have
+today. Rather, the major problem with climate change is the disruption
+it would cause to human economy and society.
 
 % introduce tipping systems
 
@@ -122,24 +173,26 @@ economy and society.
 % entity seeking to be sustained (e.g.\ humankind).
 
 
-We have previously adapted \emph{empowerment}, an
-information-theoretic quantity measuring the future potentialities
-that an agent can invoke to characterise sustainability for an agent
-inside a given environment \cite{Kim2009_sustainability}. In that
-work, empowerment was constrained to only include potentialities when
-their effect could be reversed, as a measure for active reversibility
-of the agent's environmental exploits. We now modify this idea. We
-adapt the concept of tipping elements, introduced in
-\cite{Lenton2008_tippingelements}. These are models for ``tipping''
-dynamics where a desired locally stable state can be perturbed strongly
-enough to move into an undesired stable state.  Bi-stable differential
-equations have been used to formally model tipping elements, and these
-have been used as building blocks to model and study complex systems
-comprised of multiple interacting tipping elements
+On the quantitative side, we have previously modified
+\emph{empowerment}, an information-theoretic quantity measuring the
+future potentialities that an agent can choose between, to
+specifically characterise sustainability for an agent inside a given
+environment \cite{Kim2009_sustainability}. In that work, the original
+notion of empowerment was constrained to only include such
+potentialities when their effect could be reversed; this served as a
+quantification for the active reversibility of the agent's
+environmental exploitation. We now further explore this idea. For
+this, we adapt the concept of tipping elements, introduced in
+\cite{Lenton2008_tippingelements}. These models for ``tipping''
+dynamics have a desired locally stable state which can be perturbed
+strongly enough to move into an undesired stable state. The tipping
+elements are modeled by bi-stable differential equations. In turn,
+they are used as building blocks to construct complex systems put
+together from multiple interacting tipping elements
 \cite{Brummitt2015_coupledcatastrophes,Klose2019_interactingtippingelements}.
-We show how to combine the empowerment with the tipping element
-formalism to offer a framework to model how well an agent can drive a
-system ``gone bad'' into its desired state.
+We here combine the empowerment with the tipping element formalism to
+offer a framework to model how well an agent can drive a system ``gone
+bad'' or in danger of doing so into its desired state.
 
 % explain that cubic equation systems have been used to explore
 % sustainability, but so far the agent to be sustained has not been
@@ -163,18 +216,18 @@ Our system consists of $n$ coupled elements, each of which has a state
 $x_i \in \mathbb{R}$ which may be thought of as the abundance of e.g.\
 a species or a resource. The state of the entire system is thus a
 vector $\vectorsym{x} = (x_1, \ldots, x_n)^T \in \mathbb{R}^n$. The
-temporal evolution of the system are determined by the intrinsic
-dynamics of the environment, and the impact of an agent. Formally, the
-dynamics of each tipping element are determined by the differential
+temporal evolution of the system is determined by the intrinsic
+dynamics of the environment and the impact of an agent. Formally, the
+dynamics of each tipping element $i$ are determined by the differential
 equation
 \begin{equation}
   \label{eq_coupledwithagent}
-  \frac{dx_i}{dt} = x_i - x_i^3 + c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i(t)
+  \frac{dx_i}{dt} = f(\vectorsym{x}) = x_i - x_i^3 + c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i(t)
 \end{equation}
-where where $c_i$ is a random value that is drawn from a uniform
+where $c_i$ is a random value that is drawn from a uniform
 distribution centred on $0$ and constant for a given system,
-$C(\vectorsym{x})$ is a coupling function, and $\agentimpact_i(t)$ is
-represents the agent impact which may be interpreted as the rate at
+$C(\vectorsym{x})$ characterizes the coupling  between the elements, and $\agentimpact_i(t)$ is
+ the agent impact which may be interpreted as the rate at
 which a resource (e.g.\ biomass) is exploited or a substance (e.g.\
 plastic, phosphates or other chemicals) is released into the
 environment. The coupling function is given by
@@ -184,20 +237,25 @@ environment. The coupling function is given by
 \end{equation}
 where the coupling parameters $\couplingconstant_{ji}$ are drawn from a uniform
 $0$-centred distribution for $j < i$ and set to $0$ otherwise, i.e.\
-$(\couplingconstant_{ji})$ is a lower triangular matrix.
+$(\couplingconstant_{ji})$ is an upper triangular matrix. \dpnote{is that what you
+  wanted?}
 
-The design of the environment comprised of tipping elements governed
+This design of the environment comprised of tipping elements governed
 by cubic differential equations falls into the general class of models
 reviewed by Klose \textit{et al.}\
 \cite{Klose2019_interactingtippingelements}.
 
-Restricting the interaction matrix $\couplingconstant_{ji}$ to a lower triangular
-matrix results in the interactions between the element forming a
-directed acyclic graph (DAG). In other words, the interactions form a
-hierarchy in the sense that each element affects only those with an
-index greater than its own. We chose this design because cyclic
-interactions qualitatively change the ``tipping point''
-characteristics of the elements, as discussed in more detail below.
+Restricting the interaction matrix $\couplingconstant_{ji}$ to an upper triangular
+matrix means that an element $j$ will only act on elements $i$ with a
+larger index, $i>j$, but
+never will an element $i$ act on an element $j$ of lower index. In
+particular,  the interactions between the elements form a
+directed acyclic graph (DAG). % In other words, the interactions form a
+% hierarchy in the sense that each element affects only those with an
+% index greater than its own.
+We chose this design because cyclic interactions qualitatively change
+the ``tipping point'' characteristics of the elements, as discussed in
+more detail below.
 
 % todo: make sure loss of tipping point characteristics (cyclic
 % attractors rather than fixed points etc) is discussed below.
@@ -265,9 +323,9 @@ characteristics of the elements, as discussed in more detail below.
     $\Delta dx_i / dt = c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i(t)$ is
     shown as a dark grey bar. Top: At $\Delta dx_i / dt = 0$,
     gradients at both fixed points are equal. Middle: At
-    $0 < \Delta dx_i / dt < \ccrit$, the gradient at $x{-}$ is flatter
+    $0 < \Delta dx_i / dt < \ccrit$, the gradient at $x_{-}$ is flatter
     while that at $x_{+}$ is steeper. Bottom: At
-    $\Delta dx_i / dt > \ccrit$, $x{-}$ disappears while the steepness
+    $\Delta dx_i / dt > \ccrit$, $x_{-}$ disappears while the steepness
     at $x_{+}$ increases.}
   \label{fig_cubicdemo}
 
@@ -285,7 +343,7 @@ $\pm d\xextremum / dt = \pm \ccrit = \pm 2 / 3\sqrt{3} \approx \pm
 
 In the general case, $c_i$, $C(\vectorsym{x})$ and $\agentimpact_i(t)$
 take on arbitrary values, shifting the cubic function along the
-$dx / dt$ axis while the extrema remain unchanged, and consequently,
+$dx / dt$ (vertical) axis while the extrema remain unchanged, and consequently,
 the stable fixed points are constrained to $x_{-} < -\xextremum$ and
 $x_{+} > \xextremum$ respectively. Element $i$ has two stable fixed
 points if
@@ -312,7 +370,7 @@ $\vectorsym{x}_* = (x_{1*}, \ldots, x_{n*})^T$ with the sum of
 derivative squares,
 \begin{equation}
   \label{eq_dss}
-  \sumderivsquares = \sum_i ((1 - 3 x_{i*}^2))^2.
+  \sumderivsquares = \sum_i (1 - 3 x_{i*}^2)^2.
 \end{equation}
 
 Due to the DAG structure of interactions, the stable fixed points of
@@ -322,26 +380,48 @@ entire system.
 
 If the intercept is constant, $\couplingfunction_i(\vectorsym{x}$ will converge as
 elements $1, \ldots, i - 1$ converge towards their respective fixed
-points, which will facilitate convergence of element $i$ as well.
-Allowing cyclic interactions would result in the emergenc of
+points, which will facilitate convergence of element $i$ as well
+\dpnote{Unclear; also, where does the bracket close}.
+Allowing cyclic interactions would result in the emergence of
 qualitatively different dynamics, such as cyclic attractors. As a
-simple example, setting $\couplingconstant_{ij} = -\couplingconstant_{ji}$ and setting all other
+simple example, setting $\couplingconstant_{ij} = -\couplingconstant_{ji}$ \dpnote{is that for a
+  specific value? How does one see that this happens} and setting all other
 parameters to $0$ gives rise to a cyclic attractor in which elements
 $i$ and $j$ oscillate between negative and positive values.
 
-From this perspective, restricting $(\couplingconstant_{ji})$ to a lower triangular
-matrix of random values can be considered to define the most general
-class of coupled cubic differential equations in which the elements
-retain the property of having two stable fixed points that can
-meaningfully be designated $x_{-}$ and $x_{+}$.
+From this perspective, restricting $(\couplingconstant_{ji})$ to an upper triangular
+matrix of (randomly chosen) values can be considered to define a very
+general class of coupled cubic differential equations in which all
+elements retain the property of having two guaranteed stable fixed
+points that can meaningfully be designated $x_{-}$ and $x_{+}$.
 
+May has introduced a method for assessing stability of fixed points in
+complex systems described in terms of differential equations
+\cite{May1972_stablelargecomplexsystem}. This approach uses a Jacobian
+$A(\vectorsym{x}) \equiv A = (a_{ji})$. For our system and a fixed point
+$\vectorsym{x}_* = (x_{1*}, \ldots, x_{n*})^T$, this evaluates to
+\begin{align*}
+  a_{ji} &= \frac{\partial f}{\partial x_j}(x_i) = \frac{\partial}{\partial x_j}\frac{d x_i}{d t} = \delta_{ji} (1 - 3 x_{i*}^2) + d_{ji}.
+\end{align*}
+by abuse of notation (and with $\delta_{ji}$ denoting the Kronecker\footnote{$\delta_{ji}=1$
+  if $i=j$ and $\delta_{ji}=0$ otherwise} symbol).
+May's approach uses the mean square value $\langle a_{ji} \rangle$ to
+predict whether $\vectorsym{x}_*$ is a stable fixed point. We have
+shown that all fixed points are stable in our system. Nonetheless, the
+diagonal elements of $A$ are useful to characterise fixed points, as
+they contain the gradient of \ref{eq_coupledwithagent} for each
+element at a fixed point \dpnote{I do not understand this. The
+  gradient is not the same everywhere?}. The rest of the matrix is the
+same \dpnote{across what} for all
+fixed points. Therefore, we focus on the diagonal and, noticing that
+$d_{ii} = 0$ in our system, we will now consider the sum of derivative squares
+for a fixed point \dpnote{what is this quantity going to do for us?
+  Why do we consider it? What does it measure?}
+\begin{equation}
+  \label{eq_dss}
+  \sum_i (1 - 3 x_{i*}^2)^2.
+\end{equation}
 
-% Nonetheless, the
-% diagonal elements of $A$ are useful to characterise fixed points, as
-% they contain the gradient of \eqref{eq_coupledwithagent} for each
-% element at a fixed point. The rest of the matrix is the same for all
-% fixed points.
-% todo: link this to sum of derivative squares
 
 
 \subsection{Empowerment}
@@ -387,56 +467,58 @@ To compute empowerment in the tipping scenario, we determine the
 potential stable points that can be ``intentionally'' induced by the
 agent. We discretise the state of the environment by distinguishing
 only the two stable states $x_{i+}$ and $x_{i-}$ for each element $i$,
-resulting in a state set $\stateset$ with $|\stateset| \le 2^n$. As in
-our previous work \cite{Kim2009_sustainability}, we assume no noise in
-the agent sensing and actuation. Empowerment is thus determined by the
-number of states which the agent can reach by applying its actuators
-$\agentimpact_i$.
+resulting in a state set $\stateset$ with $|\stateset| \le 2^n$. We
+consider a micromanaging ``Big Brother'' agent which controls every
+single impact $\agentimpact_i$ that each of the elements $i$ imposes on
+the system. As in our previous work \cite{Kim2009_sustainability}, we
+assume no noise in the agent sensing and actuation. Under these
+assumptions, empowerment reduces to  the logarithm of the number of states
+which the agent can reach by applying its
+impact actuators $\agentimpact_i$.
 
-We use stable fixed points of the unimpacted environment, i.e.\ with
-$\agentimpact_i(t) = 0 \forall i, t$, as starting points for which we
-characterise empowerment. We allow the agent to impact the environment
-by choosing to set $\agentimpact_i$ to $-\impactstrength$, $0$ or
-$\impactstrength$, where $\impactstrength$ is a parameter setting the strength of
-the impact, or control, of the agent on the environment. A setting of
+We use the stable fixed points of the unimpacted environment, i.e.\ with
+$\agentimpact_i(t) = 0\; \forall i, t$, as starting points for which we
+characterise empowerment. We allow the agent to impact the
+environment by choosing to set $\agentimpact_i$ to $-\impactstrength$, $0$ or $\impactstrength$,
+where $\impactstrength$ is a parameter setting the strength of the impact, or
+control, of the agent on the environment. A setting of
 $\vectorsym{\agentimpact} = (\agentimpact_i, \ldots,
 \agentimpact_n)^T$ is called an actuation.
 
 If these controls were applied permanently and sufficiently large,
-e.g. $\impactstrength \gg \ccrit + \max_i \couplingfunction_i$, the agent could directly dial the
-state of each component, and consequently its empowerment would take
-the maximal value of $n$ bits. At the other extreme, setting $\impactstrength = 0$
-prevents the agent from having any impact on the environment and its
-empowerment vanishes in all states.
+e.g.\ if one had $\impactstrength \gg \ccrit + \max_i \couplingfunction_i$, the agent could directly
+``dial'' the state of each component, and consequently its empowerment
+would attain the maximal value of $n$ bits. At the other extreme,
+setting $\impactstrength = 0$ prevents the agent from having any impact on the
+environment at all and would cause its empowerment to vanish in all
+states.
 
-A crucial concern in sustainability, and about tipping points
-specifically, is that human impacts could result in changes to the
-environment that are permanent, i.e.\ that stopping an impact may not
-be sufficient to restore the environment to its ``normal'' state.
-Therefore, we only want to count state changes that persist when the
+A crucial concern concerning sustainability in general, and tipping
+points in particular, is that human impact could result in changes to
+the environment that are permanent, i.e.\ where discontinuing an impact may
+not be sufficient to restore the environment to its ``normal'' state.
+Therefore, we only count state changes that persist once the
 direct control of the agent is removed. We implement this by letting
 the agent apply its impact for a limited time only, which is followed
 by a relaxation period during which the environment evolves on its own
-and converges towards one of its fixed points.
-Fig.~\ref{fig_agentimpact} illustrates this process for a small
-system.
-
-A state $s'$ found at at the end of this relaxation period is defined
-to be $\impactstrength$-accessible from the initial state $s$. Formally, empowerment
-is given by
+and converges towards one of its fixed points. A state $s'$ found
+\dpnote{do you mean ``reached''} at
+at the end of this relaxation period is defined to be $\impactstrength$-accessible
+from the initial state $s$. Formally, empowerment is given by
 \begin{equation}
   \label{eq_empowerment}
-  \empowerment(E, s) =
-  \log_2(|\{s': s' \mbox{ is } E\mbox{-accessible from } s\}|)
+  \empowerment(\impactstrength, s) =
+  \log_2(|\{s': s' \mbox{ is } \impactstrength\mbox{-accessible from } s\}|)
 \end{equation}
 
 In previous work, e.g.\ \cite{Salge2014_empowermentintro} the agent's
-reach is typically restricted by a time horizon for its actions. Here,
-instead, we will explore empowerment as a function of limits on
-$\agentimpact_i$, i.e.\ the strength of effect that the agent can
-exert on tipping elements $i \in \{1, \ldots, n\}$. It is important to
-notice that an increasing range of $\agentimpact_i$, analogously to an
-increasing time horizon, results in increasing empowerment.
+reach is typically restricted by imposing a time horizon for its
+actions. Here, instead, we will explore empowerment as a function of
+limits on $\agentimpact_i$, i.e.\ the strength of the effect that the
+agent can exert on each of the tipping elements
+$i \in \{1, \ldots, n\}$. It is important to notice that an increasing
+range of $\agentimpact_i$, analogously to an increasing time horizon,
+results in increasing empowerment.
 
 Empowerment as measured by \eqref{eq_empowerment} increases as the
 number of accessible states grows. However, in some states, the agent
@@ -451,7 +533,8 @@ needs would not be compromised. This provides us with a criterion to
 distinguish between sustainable and (potentially) unsustainable
 actuations which does not require any external (and possibly arbitrary
 or contentious) designation of states as sustainable or unsustainable.
-Therefore, consistently with our previous work we define a state $s'$
+Therefore, consistently with our previous work \dpnote{you mean the
+  2009 one?} we define a state $s'$
 to be reversibly accessible from a state $s$ if $s'$ is accessible
 from $s$ and $s$ is accessible from $s'$. This allows us to apply our
 previous definition of sustainable empowerment as
@@ -645,16 +728,33 @@ affected by an agent as a model to study sustainability and to
 quantify it using the principled concept of empowerment
 \cite{Salge2014_empowermentintro}, rooted in information theory
 \cite{CoverThomas1991_informationtheory}, and applying concepts we
-previously developed \cite{Kim2009_sustainability}. The cubic
-differential equation systems, which we use here, capture essential
-aspects of sustainability have been applied in sustainability research
-and beyond, as reviewed e.g.\ by
-\cite{Klose2019_interactingtippingelements}. By including an agent,
-our system opens up opportunities to model sustainability as a
-property that emerges as an agent interacts with a system. This allows
-for a more precise characterisation and formalisation of
-sustainability, separating it from more general systems stability,
-such as ecosystem stability.
+previously developed \cite{Kim2009_sustainability}. The cubic differential
+equation systems which we use here capture essential aspects of
+sustainability have been applied in sustainability research and
+beyond, as reviewed e.g.\ by
+\cite{Klose2019_interactingtippingelements}. By explicitly including
+an agent, our system opens up opportunities to model sustainability as
+a property that emerges as some kind of external actor interacts with
+the system. This allows for a more precise characterisation and
+formalisation of sustainability under active and intention-driven
+stressors (one main use of empowerment is the modeling of
+intention-carrying intrinsically motivated agents). This separates
+this work from investigating more general questions of system, such as
+ecosystem stability.
+
+Our plans to further develop this approach include studying the
+effects of providing the agent with different actuation channels. An
+alternative to allowing the agent to impact all elements equally is to
+restrict the agent to impact only one or few elements directly. In
+this scenario, high levels of empowerment result only if the agent is
+able to affect a large number of elements indirectly via their
+coupling. We therefore anticipate that stronger coupling will
+increase, rather than decrease, empowerment. It will be interesting to
+investigate whether susceptibility to ``domino effects'' between
+elements can be characterised in this way, and specifically systems in
+which only one or few elements can cause  downstream elements to tip, as
+described by \cite{Brummitt2015_coupledcatastrophes}. \dpnote{Did I
+  capture that correctly, or am I misrepresenting?}
 
 Empowerment in its general form considers an agent to receive signals
 from the environment, and to send signals to the environment through
@@ -673,7 +773,8 @@ fixed point $\vectorsym{x}_*$, evaluates to
   \label{eq_jacobian}
   a_{ji} = \frac{d x_i}{d x_j d t} = \delta_{ji} (1 - 3 x_{i*}^2) + \couplingconstant_{ji}
 \end{equation}
-where $\delta_{ji}$ is Kronecker's delta.
+where $\delta_{ji}$ is Kronecker's delta. \dpnote{Check that this is
+  not a repeat}
 
 According to May, the mean square value $\langle a_{ji}^2 \rangle$ is
 used to predict whether $\vectorsym{x}_*$ is a stable fixed point. We
@@ -716,7 +817,22 @@ states that are merely stable from those in which we meet our own
 needs and at the same time protect the ability of future generations
 to meet their needs as well.
 
+% It is interesting to note that the offset $c$ produces a hysteresis
+% which makes it easier for the agent to tip the system in one direction
+% (from $x_{-}$ to $x_{+}$ if $c > 0$) while the reverse operation
+% becomes more difficult. This enables applying the concept of
+% sustainable empowerment, which we introduced in
+% \cite{Kim2009_sustainability}, to systems of coupled tipping elements
+% as well. \dpnote{what's the difference to what we do now?}
 
+% Finally, a strength of our model is that it allows efficient
+% computation of fixed point as well as integrating differential
+% equations to produce time series. This opens perspectives to
+% investigate the potential to use time series for
+% characterising and quantifying sustainability, for instance as a tool to
+% identify risks and early warning signs of breakdowns in sustainability
+% or to identify elements that are especially relevant to maintaining
+% sustainability.
 
 
 
@@ -1053,3 +1169,8 @@ that are especially relevant to maintaining sustainability.
 % reiterate accommodation of noise / incomplete information
 
 \end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
