@@ -1029,17 +1029,28 @@ empowermentBarplot <- function(e, numNodes, numStates=NULL, ...)
 }
 
 
-barplotByAgentImpactCorrelation <- function(a, col1Name, col2Name, ...)
+sparsifyNames <- function(n, sparsifyFactor)
+{
+  n[0L:(length(n) - 1L) %% sparsifyFactor > 0] <- "";
+  return(n);
+}
+
+
+barplotByAgentImpactCorrelation <- function(a, col1Name, col2Name, nameSparsifyFactor=1L, ...)
 {
   b <- by(a, a$agentImpact, function(d) { if(length(unique(d[[col2Name]])) > 1L) { return(cor(d[[col1Name]], d[[col2Name]])); }; return(NA); })
-  barplot(b, las=2, xlab="agentImpact", ylab=sprintf("r(%s, %s)", col1Name, col2Name), ...);
+  ## barplot(b, las=2, xlab="agentImpact", ylab=sprintf("r(%s, %s)", col1Name, col2Name), ...);
+  barNames <- sparsifyNames(names(b), nameSparsifyFactor);
+  barplot(b, las=2, xlab="impact strength E", names.arg=barNames, ...);
   return(invisible(b));
 }
 
 
-empowermentBoxplot <- function(a, empowermentColumn, numNodes, ...)
+empowermentBoxplot <- function(a, empowermentColumn, numNodes, nameSparsifyFactor=1L, ...)
 {
-  boxplot(by(a[[empowermentColumn]], a$agentImpact, function(x) { return(x); }), ylim=c(0, numNodes), las=2, ...);
+  b <- by(a[[empowermentColumn]], a$agentImpact, function(x) { return(x); });
+  boxNames <- sparsifyNames(names(b), nameSparsifyFactor);
+  boxplot(b, ylim=c(0, numNodes), names=boxNames, las=2, ...);
 }
 
 
@@ -1089,22 +1100,22 @@ singleRunIeeeAlife2020Plots <- function(a, n, epsPrefix)
   ai030 <- a[a$agentImpact == 0.3, ];
   ai070 <- a[a$agentImpact == 0.7, ];
   epsdevice(sprintf("%s_emp.eps", epsPrefix));
-  empowermentBoxplot(a, "transientEmpowerment", n);
+  empowermentBoxplot(a, "transientEmpowerment", n, xlab="impact strength E", ylab="empowerment", 5L, cex.axis=0.8, cex=0.5);
   dev.off();
   epsdevice(sprintf("%s_empsust.eps", epsPrefix));
-  empowermentBoxplot(a, "sustainableEmpowerment", n);
+  empowermentBoxplot(a, "sustainableEmpowerment", n, xlab="impact strength E", ylab="sustainable empowerment", 5L, cex.axis=0.8, cex=0.5);
   dev.off();
   epsdevice(sprintf("%s_corr_dss_emp_ai030.eps", epsPrefix));
-  plot(ai030$derivSquaredSum, ai030$transientEmpowerment);
+  plot(ai030$derivSquaredSum, ai030$transientEmpowerment, xlab="sum of derivative squares", ylab="empowerment");
   dev.off();
   epsdevice(sprintf("%s_corr_dss_emp_ai070.eps", epsPrefix));
-  plot(ai070$derivSquaredSum, ai070$transientEmpowerment);
+  plot(ai070$derivSquaredSum, ai070$transientEmpowerment, xlab="sum of derivative squares", ylab="empowerment");
   dev.off();
   epsdevice(sprintf("%s_corr_dss_emp.eps", epsPrefix));
-  barplotByAgentImpactCorrelation(a, "derivSquaredSum", "transientEmpowerment", ylim=c(-1, 1));
+  barplotByAgentImpactCorrelation(a, "derivSquaredSum", "transientEmpowerment", 5L, ylab="r(sum deriv sq, empowerment)", ylim=c(-1, 1));
   dev.off();
   epsdevice(sprintf("%s_corr_dss_empsust.eps", epsPrefix));
-  barplotByAgentImpactCorrelation(a, "derivSquaredSum", "sustainableEmpowerment", ylim=c(-1, 1));
+  barplotByAgentImpactCorrelation(a, "derivSquaredSum", "sustainableEmpowerment", 5L, ylab="r(sum deriv sq, sustainable empowerment)", ylim=c(-1, 1));
   dev.off();
   return(invisible(list(a=a, ai030=ai030, ai070=ai070)));
 }
