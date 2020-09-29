@@ -1070,13 +1070,13 @@ hoppingDemo <- function(ctp, agentImpact, nSteps, dtime)
 cubicDemoPlots <- function()
 {
   epsdevice("cubicdemo_intercept000.eps");
-  plotTippingCubic(1, 1, 0, ylim=c(-2.5, 2.5));
+  plotTippingCubic(1, 1, 0, ylim=c(-2.5, 2.5), cex.axis=1.2, cex.lab=1.2, lab=c(5, 3, 1));
   dev.off();
   epsdevice("cubicdemo_intercept025.eps");
-  plotTippingCubic(1, 1, 0.25, ylim=c(-2.5, 2.5));
+  plotTippingCubic(1, 1, 0.25, ylim=c(-2.5, 2.5), cex.axis=1.2, cex.lab=1.2, lab=c(5, 3, 1));
   dev.off();
   epsdevice("cubicdemo_intercept100.eps");
-  plotTippingCubic(1, 1, 1, ylim=c(-2.5, 2.5));
+  plotTippingCubic(1, 1, 1, ylim=c(-2.5, 2.5), cex.axis=1.2, cex.lab=1.2, lab=c(5, 3, 1));
   dev.off();
   return(invisible(list()));
 }
@@ -1089,7 +1089,8 @@ agentImpactDemoPlot <- function()
   fpDemo <- coupledTippingAllStableFixedPoints(ctpDemo);
   s <- agentImpactedCoupledTippingTimeSeries(ctpDemo, c(-1, 1, 0), 0.8, fpDemo[[1]], 1000, 1000, 0.1, 1000);
   epsdevice("agentimpact_ode.eps");
-  plotODESeries(s, ylim=c(-2, 2));
+  par(mar=c(5, 7, 4, 2));
+  plotODESeries(s, ylim=c(-2, 2), cex.axis=2, cex.main=2.5, cex.lab=2);
   dev.off();
   return(invisible(list(ctpDemo=ctpDemo, fpDemo=fpDemo, s=s)));
 }
@@ -1100,10 +1101,10 @@ singleRunIeeeAlife2020Plots <- function(a, n, epsPrefix)
   ai030 <- a[a$agentImpact == 0.3, ];
   ai070 <- a[a$agentImpact == 0.7, ];
   epsdevice(sprintf("%s_emp.eps", epsPrefix));
-  empowermentBoxplot(a, "transientEmpowerment", n, xlab="impact strength E", ylab="empowerment", 5L, cex.axis=0.8, cex=0.5);
+  empowermentBoxplot(a, "transientEmpowerment", n, xlab="impact strength E", ylab="empowerment", 5L, cex.axis=1, cex=0.6, col="lightgrey");
   dev.off();
   epsdevice(sprintf("%s_empsust.eps", epsPrefix));
-  empowermentBoxplot(a, "sustainableEmpowerment", n, xlab="impact strength E", ylab="sustainable empowerment", 5L, cex.axis=0.8, cex=0.5);
+  empowermentBoxplot(a, "sustainableEmpowerment", n, xlab="impact strength E", ylab="sustainable empowerment", 5L, cex.axis=1, cex=0.6, col="lightgrey");
   dev.off();
   epsdevice(sprintf("%s_corr_dss_emp_ai030.eps", epsPrefix));
   plot(ai030$derivSquaredSum, ai030$transientEmpowerment, xlab="sum of derivative squares", ylab="empowerment");
@@ -1124,6 +1125,8 @@ singleRunIeeeAlife2020Plots <- function(a, n, epsPrefix)
 allIeeeAlife2020Plots <- function(d)
 {
   l <- list();
+  agentImpactDemoPlot();
+  cubicDemoPlots();
   epsPrefix <- sprintf("n%02d_full_small", d$n);
   l[[epsPrefix]] <- singleRunIeeeAlife2020Plots(d$adSmall$agentImpactTe, d$n, epsPrefix);
   epsPrefix <- sprintf("n%02d_chain_small", d$n);

@@ -23,6 +23,7 @@
 \newcommand{\couplingfunction}{\ensuremath{C}}
 \newcommand{\sumderivsquares}{\ensuremath{T}}
 \newcommand{\impactstrength}{\ensuremath{E}}
+\newcommand{\timehorizon}{\ensuremath{t_{\mathrm{hor}}}}
 
 % % Daniel's comments
 % %\newcommand{\dpnote}[1]{{\color{magenta} \fbox{#1 \ref{undefined-ref-remove-when-fixed}}}}
@@ -316,7 +317,7 @@ more detail below.
     equations. Fixed points $x_{-}$ and $x_{+}$ are shown as blue. The
     blue lines indicate the gradients at the fixed points. Extrema are
     shown in red. The intercept
-    $\Delta dx_i / dt = c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i(t)$ is
+    $\Delta dx_i / dt := c_i + \couplingfunction_i(\vectorsym{x}) + \agentimpact_i(t)$ is
     shown as a dark grey bar. Top: At $\Delta dx_i / dt = 0$,
     gradients at both fixed points are equal. Middle: At
     $0 < \Delta dx_i / dt < \ccrit$, the gradient at $x_{-}$ is flatter
@@ -396,12 +397,12 @@ points that can meaningfully be designated $x_{-}$ and $x_{+}$.
 
 \begin{figure}
 
-  \centerline{\includegraphics[width=7cm]{agentimpact_ode.eps}}
+  \centerline{\includegraphics[width=8cm]{agentimpact_ode.eps}}
 
   \caption{Illustration of an agent impacting on an environment with
     three tipping elements. Initially, up to $t = 100$, the
     environment is at the stable fixed point $(x_{1+}, x_{2-}, x_{3+}$. The agent's impact is
-    applied at $100 \le t  200$, causing elements $1$ and $2$ to change
+    applied at $100 \le t < 200$, causing elements $1$ and $2$ to change
     their discretised state. After removing the agent's impact at $t =
     200$, element $1$ returns to its initial state while element $2$
     remains at $x_{2+}$. The gradual impact experienced by element $3$
@@ -443,22 +444,24 @@ assumptions, empowerment reduces to  the logarithm of the number of states
 which the agent can reach by applying its
 impact actuators $\agentimpact_i$.
 
-We use the stable fixed points of the unimpacted environment, i.e.\ with
-$\agentimpact_i(t) = 0\; \forall i, t$, as starting points for which we
-characterise empowerment. We allow the agent to impact the
-environment by choosing to set $\agentimpact_i$ to $-\impactstrength$, $0$ or $\impactstrength$,
-where $\impactstrength$ is a parameter setting the strength of the impact, or
-control, of the agent on the environment. A setting of
+We use the stable fixed points of the unimpacted environment, i.e.\
+with $\agentimpact_i(t) = 0\; \forall i, t$, as starting points for
+which we characterise empowerment. We allow the agent to impact the
+environment by choosing to set $\agentimpact_i$ to $-\impactstrength$,
+$0$ or $\impactstrength$, where $\impactstrength$ is a parameter
+setting the strength of the impact, or control, of the agent on the
+environment. A setting of
 $\vectorsym{\agentimpact} = (\agentimpact_i, \ldots,
 \agentimpact_n)^T$ is called an actuation.
 
 If these controls were applied permanently and sufficiently large,
-e.g.\ if one had $\impactstrength \gg \ccrit + \max_i \couplingfunction_i$, the agent could directly
-``dial'' the state of each component, and consequently its empowerment
-would attain the maximal value of $n$ bits. At the other extreme,
-setting $\impactstrength = 0$ prevents the agent from having any impact on the
-environment at all and would cause its empowerment to vanish in all
-states.
+e.g.\ if one had
+$\impactstrength \gg \ccrit + \max_i \couplingfunction_i$, the agent
+could directly ``dial'' the state of each component, and consequently
+its empowerment would attain the maximal value of $n$ bits. At the
+other extreme, setting $\impactstrength = 0$ prevents the agent from
+having any impact on the environment at all and would cause its
+empowerment to vanish in all states.
 
 A crucial issue concerning sustainability in general, and tipping
 points in particular, is that human impact could result in changes to
@@ -473,8 +476,10 @@ Fig.~\ref{fig_agentimpact} illustrates this process for a small
 system.
 
 A state $s'$ reached at the end of this relaxation period is defined
-to be $\impactstrength$-accessible from the initial state $s$.
-Formally, empowerment is given by
+to be $\impactstrength$-accessible from the initial state $s$. We
+consider this to be the state resulting from the agent's actions, and,
+analogously to \cite[eq.~(2)]{Kim2009_sustainability}, we formally define
+empowerment as
 \begin{equation}
   \label{eq_empowerment}
   \empowerment(\impactstrength, s) =
@@ -482,13 +487,36 @@ Formally, empowerment is given by
 \end{equation}
 
 In previous work, e.g.\ \cite{Salge2014_empowermentintro} the agent's
-reach is typically restricted by imposing a time horizon for its
-actions. Here, instead, we will explore empowerment as a function of
-limits on $\agentimpact_i$, i.e.\ the strength of the effect that the
-agent can exert on each of the tipping elements
-$i \in \{1, \ldots, n\}$. It is important to notice that an increasing
-range of $\agentimpact_i$, analogously to an increasing time horizon,
-results in increasing empowerment.
+reach is typically restricted by imposing a time horizon
+$\timehorizon$ for its actions. A straightforward implementation of
+this approach would be to allow the agent to change its impacts on the
+tipping elements with a bounded rate
+$|d\agentimpact_i / dt| \le r_{\mathrm{max}}$ during a time window
+$[0, \timehorizon]$. This can be simplified by noticing that The
+change to the equilibrium state $x_i$ of tipping element $i$ is
+monotonic, both with respect to the direct impact $\agentimpact_i$ and
+the indirect impact via the coupling function
+$\couplingfunction_i(\vectorsym{x})$. As a consequence, the maximum
+change the agent can make to its actuation, i.e.\
+$r_{\mathrm{max}} \timehorizon$, determines its ability to tip an
+element.
+% the detailed dynamics of the trajectories of $\agentimpact_i$ during
+% the horizon time interval are inconsequential.
+
+Therefore, our definition of empowerment as a function of
+$\impactstrength$, which limits $|\agentimpact_i|$, i.e.\ the strength
+of the effect that the agent can exert on each of the tipping elements
+$i \in \{1, \ldots, n\}$, is analogous to assuming bounds on rates of
+impact and a limited time horizon. This approach has the technical
+advantage of enabling more efficient computational exploration further
+detailed in section \ref{section_implementation}. It is interesting to
+notice from a theoretical perspective, however, that defining an
+action horizon, rather than a narrower concept of a time horizon, is
+sufficient to apply empowerment.
+
+% It is important to notice that an increasing
+% range of $\agentimpact_i$, analogously to an increasing time horizon,
+% results in increasing empowerment.
 
 Empowerment as measured by \eqref{eq_empowerment} increases as the
 number of accessible states grows. However, in some states, the agent
@@ -569,9 +597,9 @@ is available at \texttt{https://github.com/jttkim/al20sustain}.
 \begin{figure}
   \begin{center}
 
-    \includegraphics[width=7cm]{n08_full_small_emp.eps}
+    \includegraphics[width=8cm]{n08_full_small_emp.eps}
 
-    \includegraphics[width=7cm]{n08_full_small_empsust.eps}
+    \includegraphics[width=8cm]{n08_full_small_empsust.eps}
 
   \end{center}
 
@@ -615,9 +643,9 @@ stricter condition than plain accessibility.
 
   \begin{center}
 
-    \includegraphics[width=7cm]{n08_full_small_corr_dss_emp_ai030.eps}
+    \includegraphics[width=8cm]{n08_full_small_corr_dss_emp_ai030.eps}
 
-    \includegraphics[width=7cm]{n08_full_small_corr_dss_emp_ai070.eps}
+    \includegraphics[width=8cm]{n08_full_small_corr_dss_emp_ai070.eps}
 
   \end{center}
 
@@ -638,9 +666,9 @@ this trend reverses to a positive correlation.
 
   \begin{center}
 
-    \includegraphics[width=7cm]{n08_full_small_corr_dss_emp.eps}
+    \includegraphics[width=8cm]{n08_full_small_corr_dss_emp.eps}
 
-    \includegraphics[width=7cm]{n08_full_small_corr_dss_empsust.eps}
+    \includegraphics[width=8cm]{n08_full_small_corr_dss_empsust.eps}
 
   \end{center}
 
