@@ -23,7 +23,7 @@
 \newcommand{\couplingfunction}{\ensuremath{C}}
 \newcommand{\sumderivsquares}{\ensuremath{T}}
 \newcommand{\impactstrength}{\ensuremath{E}}
-\newcommand{\timehorizon}{\ensuremath{t_{\mathrm{hor}}}}
+% \newcommand{\timehorizon}{\ensuremath{t_{\mathrm{hor}}}}
 
 % % Daniel's comments
 % %\newcommand{\dpnote}[1]{{\color{magenta} \fbox{#1 \ref{undefined-ref-remove-when-fixed}}}}
@@ -135,6 +135,12 @@ aggregated over a key set of resources to calculate e.g.\ Earth
 Overshoot
 Day\footnote{https://www.footprintnetwork.org/2020/06/05/press-release-june-2020-earth-overshoot-day/}.
 
+Stability is not a sufficient condition for sustainability, however.
+States may exist that are very stable and that are considered
+unsustainable nonetheless. As an example, the main concern about
+global warming is the disruption it would cause to human economy and
+society, not that a warmer global climate would be less stable.
+
 A considerable proportion of sustainability work focuses on
 conservation of natural systems by reducing footprints of
 exploitation, pollution and degradation, e.g.\ the Planetary
@@ -147,18 +153,38 @@ reduced where these boundaries are exceeded. However, for some
 resources, boundaries of production or regeneration rates can be
 greatly expanded. The most dramatic example of this is arguably
 production of staple foods, which has increased by orders of magnitude
-by a succession of technological developments since agriculture was
-first adopted, enabled by technologies including fertilisers and
-plant breeding, and culminating in the Green Revolution.
+since agriculture was first adopted, enabled by technologies including
+fertilisers and plant breeding, and culminating in the Green
+Revolution. The resulting agricultural systems are stable only by
+continued management. If human impact were removed, they would change
+to a more stable state by ecological succession e.g.\ from farmland to
+forest.
 
-Another issue with approaching sustainability through a lens of
-ecosystems stability is that states may exist that are very stable and
-that are considered unsustainable nonetheless. As an example, the
-problem with global warming is not necessarily that a warmer global
-climate would be less stable. Indeed, there have been periods in the
-earth's history with a considerable warmer climate than what we have
-today. Rather, the major problem with climate change is the disruption
-it would cause to human economy and society.
+These observations highlight that the entity being sustained is
+central to the concept of sustainability, even though this entity,
+typically humankind or a group of stakeholders, is frequently only
+implicitly assumed. A stable state of the planet that is inhospitable
+to human life, or disruptive to socio-economic systems, is generally
+considered unsustainable. On the other hand, forcing a system into an
+altered state is in many cases considered sustainable if such impacts
+can be controlled and associated with beneficial and desirable
+activities. As an example, sustainable agricultural production
+processes can be characterised as cycles of forcing changes to
+ecosystems from this perspective.
+
+Empowerment provides a method to quantify the control of an agent over
+its environment. Formally, for an agent interacting with an
+environment via a sensor and an actuator, empowerment is defined as
+the amount of Shannon information transmitted from the actuator via
+the environment to the sensor \cite{Klyubin2005_beempowered}. If the
+sensor is assumed to fully capture the state of the environment
+without any noise, empowerment of a state evaluates to Shannon
+information of maximum entropy of the states which the agent can bring
+the environment into using its actuator.
+
+% todo: fruit successions?
+
+% todo: family silver
 
 % introduce tipping systems
 
@@ -170,27 +196,33 @@ it would cause to human economy and society.
 % sustainability, focusing on it alone excludes the active role of the
 % entity seeking to be sustained (e.g.\ humankind).
 
+In previous work, we have modified empowerment to quantify
+sustainability by constraining the states to those for which the agent
+is able to bring the system back to the start state
+\cite{Kim2009_sustainability}. In this case, the agent is able to
+operate a cycle which is a simple model of a sustainable process e.g.\
+as outlined for agriculture above. On the other hand, bringing the
+system into a state for which there is no way back corresponds to
+unsustainable practices such as using non-renewable resources.
 
-On the quantitative side, we have previously modified
-\emph{empowerment}, an information-theoretic quantity measuring the
-future potentialities that an agent can choose between, to
-specifically characterise sustainability for an agent inside a given
-environment \cite{Kim2009_sustainability}. In that work, the original
-notion of empowerment was constrained to only include such
-potentialities when their effect could be reversed; this served as a
-quantification for the active reversibility of the agent's
-environmental exploitation. We now further explore this idea. For
-this, we adapt the concept of tipping elements, introduced in
-\cite{Lenton2008_tippingelements}. These models for ``tipping''
-dynamics have a desired locally stable state which can be perturbed
-strongly enough to move into an undesired stable state. The tipping
-elements are modelled by bi-stable differential equations. In turn,
-they are used as building blocks to construct complex systems put
-together from multiple interacting tipping elements
+Stability and control over a system can collapse dramatically at
+critical points in system dynamics
+\cite{Lenton2019_riskytippingpoints}. Such tipping elements have been
+modelled by bi-stable systems in which perturbations of sufficient
+strength can result in transition from one state to another
+\cite{Lenton2008_tippingelements}. Cubic differential equations
+capture this key property, and they have been used as building blocks
+for models in which multiple tipping systems are coupled
 \cite{Brummitt2015_coupledcatastrophes,Klose2019_interactingtippingelements}.
-We here combine the empowerment with the tipping element formalism to
-offer a framework to model how well an agent can drive a system ``gone
-bad'' or in danger of doing so into its desired state.
+
+Multistability and a potential of tipping occur in a wide range of
+systems, and for most of these, cubic differential equations are at
+most a qualitative model. Nonetheless, coupled cubic equations are
+able to capture cascades of tipping and other complex phenomena. Here,
+we use them as a framework to explore and demonstrate properties of
+empowerment based sustainability in a model environment that
+qualitatively reflects some of the tipping point dynamics of the
+systems sustaining humankind on Earth.
 
 % explain that cubic equation systems have been used to explore
 % sustainability, but so far the agent to be sustained has not been
@@ -401,14 +433,16 @@ points that can meaningfully be designated $x_{-}$ and $x_{+}$.
 
   \caption{Illustration of an agent impacting on an environment with
     three tipping elements. Initially, up to $t = 100$, the
-    environment is at the stable fixed point $(x_{1+}, x_{2-}, x_{3+}$. The agent's impact is
-    applied at $100 \le t < 200$, causing elements $1$ and $2$ to change
-    their discretised state. After removing the agent's impact at $t =
-    200$, element $1$ returns to its initial state while element $2$
-    remains at $x_{2+}$. The gradual impact experienced by element $3$
-    do not amount to a change in discretised state. Simulation of the
-    actuation shown here establishes that state $(x_{1+}, x_{2+},
-    x_{3+})$ is accessible from state $(x_{1+}, x_{2-}, x_{3+})$.}
+    environment is at the stable fixed point
+    $(x_{1+}, x_{2-}, x_{3+})$. The agent's impact is applied at
+    $100 \le t < 200$, causing elements $1$ and $2$ to change their
+    discretised state. After removing the agent's impact at $t = 200$,
+    element $1$ returns to its initial state while element $2$ remains
+    at $x_{2+}$. The gradual impact experienced by element $3$ do not
+    amount to a change in discretised state. Simulation of the
+    actuation shown here establishes that state
+    $(x_{1+}, x_{2+}, x_{3+})$ is accessible from state
+    $(x_{1+}, x_{2-}, x_{3+})$.}
   \label{fig_agentimpact}
 \end{figure}
 
@@ -485,34 +519,61 @@ empowerment as
   \empowerment(\impactstrength, s) =
   \log_2(|\{s': s' \mbox{ is } \impactstrength\mbox{-accessible from } s\}|)
 \end{equation}
+This corresponds to a maximum entropy distribution on the target
+states (not on the actions), since there is no noise in our system.
 
 In previous work, e.g.\ \cite{Salge2014_empowermentintro} the agent's
-reach is typically restricted by imposing a time horizon
-$\timehorizon$ for its actions. A straightforward implementation of
-this approach would be to allow the agent to change its impacts on the
-tipping elements with a bounded rate
-$|d\agentimpact_i / dt| \le r_{\mathrm{max}}$ during a time window
-$[0, \timehorizon]$. This can be simplified by noticing that the
-change to the equilibrium state $x_i$ of tipping element $i$ is
-monotonic, both with respect to the direct impact $\agentimpact_i$ and
-the indirect impact via the coupling function
-$\couplingfunction_i(\vectorsym{x})$. As a consequence, the maximum
-change the agent can make to its actuation, i.e.\
-$r_{\mathrm{max}} \timehorizon$, determines its ability to tip an
-element.
+reach is typically restricted by imposing a time window for its
+actions. Here, we use $\impactstrength$ to limit the range of effects
+that the agent can cause. In our system, changes to the equilibrium
+state in a tipping element are monotonic both with respect to the
+direct impact via $\agentimpact_i$ and the indirect impact via the
+coupling function $\couplingfunction_i(\vectorsym{x})$. Consequently,
+the maximum of $|\agentimpact_i|$ during a time window largely
+determines whether the agent's actions result in a change of the
+discretised state of element $i$ while the details of the trajectory
+by which the maximum is reached are irrelevant. Therefore, limiting
+$\impactstrength$ directly is equivalent to imposing a time window and
+boundaries on the rate with which the agent can change the
+$\agentimpact_i$ values. As a technical advantage, limiting
+$\impactstrength$ eliminates numerical integration over a time window
+and thereby facilitates efficient computation. Theoretically, it may
+be of interest that appropriately limiting action range can serve as
+an alternative to limiting time when applying empowerment.
+
+
+% effect on the discretised state largely depends on the maximum of
+% $\agentimpact_i$ during a given time period.
+
+% Our
+% rationale is
+
+% A straightforward implementation of
+% this approach would be to allow the agent to change its impacts on the
+% tipping elements with a bounded rate
+% $|d\agentimpact_i / dt| \le r_{\mathrm{max}}$ during a time window
+% $[0, \timehorizon]$. This can be simplified by noticing that the
+% change to the equilibrium state $x_i$ of tipping element $i$ is
+% monotonic, both with respect to the direct impact $\agentimpact_i$ and
+% the indirect impact via the coupling function
+% $\couplingfunction_i(\vectorsym{x})$. As a consequence, the maximum
+% change the agent can make to its actuation, i.e.\
+% $r_{\mathrm{max}} \timehorizon$, determines its ability to tip an
+% element.
 % the detailed dynamics of the trajectories of $\agentimpact_i$ during
 % the horizon time interval are inconsequential.
 
-Therefore, our definition of empowerment as a function of
-$\impactstrength$, which limits $|\agentimpact_i|$, i.e.\ the strength
-of the effect that the agent can exert on each of the tipping elements
-$i \in \{1, \ldots, n\}$, is analogous to assuming bounds on rates of
-impact and a limited time horizon. This approach has the technical
-advantage of enabling more efficient computational exploration further
-detailed in section \ref{section_implementation}. It is interesting to
-notice from a theoretical perspective, however, that defining an
-action horizon, rather than a narrower concept of a time horizon, is
-sufficient to apply empowerment.
+% Therefore, our definition of empowerment as a function of
+% $\impactstrength$, which limits $|\agentimpact_i|$, i.e.\ the strength
+% of the effect that the agent can exert on each of the tipping elements
+% $i \in \{1, \ldots, n\}$, is analogous to assuming bounds on rates of
+% impact and a limited time horizon. This approach has the technical
+% advantage of enabling more efficient computational exploration, as
+% detailed further in section \ref{section_implementation}. It is
+% interesting to notice from a theoretical perspective, however, that
+% defining an action horizon, as $\impactstrength$, rather than a
+% narrower concept of a time horizon, is sufficient to apply
+% empowerment.
 
 % It is important to notice that an increasing
 % range of $\agentimpact_i$, analogously to an increasing time horizon,
@@ -672,9 +733,11 @@ this trend reverses to a positive correlation.
 
   \end{center}
 
-  \caption{Pearson correlation coefficients between the sum of derivative
-    squares and empowerment (top) and between the sum of derivative
-    squares and sustainable empowerment (bottom).}
+  \caption{Barplots of Pearson correlation coefficients between the
+    sum of derivative squares and empowerment (top) and between the
+    sum of derivative squares and sustainable empowerment (bottom). No
+    bars are shown where correlation is undefined because the variance
+    of empowerment is $0$.}
   \label{fig_dssempcorr}
 
 \end{figure}
@@ -763,6 +826,14 @@ and our control over our action at a population or society level is
 imperfect as well. Therefore, it is important to understand the impact
 of these imperfections on sustainability.
 
+Traditional empowerment can be seen as a type of information-theoretic
+generalization of controllability in the control-theoretic sense (see
+e.g.\ \cite{Tiomkin2017_controlcapacity}). There are indications that
+the parallels between information and control theory are structural,
+especially in the linear case \cite{Tanaka2018_mindirinfolqgcontrol}.
+However, this field is still under study. It would be interesting to
+explore whether there is a counterpart to sustainable empowerment in
+control theory.
 
 The stability of systems of coupled differential equations has been an
 area of interest since decades \cite{Landi2018_ecologicalnetworks}. A
@@ -808,10 +879,12 @@ cheap and effective measures to aid that recovery process.
 
 Pollution of water bodies is an area that may especially benefit from
 specific analyses using sustainable empowerment. This is because
-pollution of oceans is currently a major area of concern, and river
-systems could provide very useful precedents, as they have been
-subject to heavy pollution in the past until they have been
-successfully restored.
+pollution of oceans is currently a major area of concern, and aquatic
+systems could provide very useful precedents. Especially rivers have
+been subject to heavy pollution in the past, and there are cases of
+preserving ecosystems services through conservation and partially
+restoring them using replacement systems
+\cite{Geist2016_aquatichabitatrecovery}.
 
 In conclusion, we have shown that expressly including an agent,
 such as humankind, in contexts of global sustainability, and requiring
